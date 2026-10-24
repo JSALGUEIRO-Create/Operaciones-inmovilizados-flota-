@@ -97,25 +97,27 @@ const IM=JSON.parse(document.getElementById('d-IM').textContent);
 let TODAY=JSON.parse(document.getElementById('d-TODAY').textContent);
 let MIN=JSON.parse(document.getElementById('d-MIN').textContent);
 let TREND=[], RECUR=[];
-function addDays(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+function addDays(iso,n){const d=new Date(Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10)));d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function fmtEsShort(iso){const d=new Date(iso+'T00:00:00');const M=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return d.getDate()+' '+M[d.getMonth()]}
 function fmtEsLong(iso){const d=new Date(iso+'T00:00:00');const M=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];return d.getDate()+' de '+M[d.getMonth()]+' de '+d.getFullYear()}
 function buildTrend(rows,minD,today){
-  const start=new Date(minD.slice(0,7)+'-01T00:00:00'),end=new Date(today.slice(0,7)+'-01T00:00:00');
-  const out=[];let cur=new Date(start);
-  while(cur<=end){
-    const ms=cur.toISOString().slice(0,10);
-    const ny=cur.getMonth()==11?cur.getFullYear()+1:cur.getFullYear(), nm=cur.getMonth()==11?0:cur.getMonth()+1;
-    let meTmp=new Date(Date.UTC(ny,nm,1)); meTmp.setUTCDate(meTmp.getUTCDate()-1);
-    let me=meTmp.toISOString().slice(0,10); if(me>today)me=today;
-    const mkey=ms.slice(0,7);
+  let y=+minD.slice(0,4), m=+minD.slice(5,7);
+  const ey=+today.slice(0,4), em=+today.slice(5,7);
+  const out=[];let guard=0;
+  while((y<ey || (y===ey && m<=em)) && guard<2000){
+    guard++;
+    const mkey=y+'-'+String(m).padStart(2,'0');
+    const ms=mkey+'-01';
+    const ny2=m===12?y+1:y, nm2=m===12?1:m+1;
+    let me=addDays(ny2+'-'+String(nm2).padStart(2,'0')+'-01',-1);
+    if(me>today)me=today;
     let n=0,d=0,ing=0;
     rows.forEach(r=>{
       if(r[7]<=me && (r[8]==null || r[8]>=ms)){n++; const s0=r[7]<ms?ms:r[7]; const e0=(r[8]||today)>me?me:(r[8]||today); if(e0>=s0)d+=diffDays(s0,e0)+1;}
-      if(r[7].slice(0,7)==mkey) ing++;
+      if(r[7].slice(0,7)===mkey) ing++;
     });
     out.push({m:mkey,n,d,ing});
-    cur=new Date(Date.UTC(ny,nm,1));
+    if(m===12){y++;m=1} else {m++}
   }
   return out;
 }
@@ -214,7 +216,7 @@ function freshFilters(){return {3:{from:DEF_FROM,to:DEF_TO,reg:new Set(),suc:new
 let f=freshFilters();
 let cur=0, sortCol={5:['h',-1],6:['d',-1],12:['n',-1]};
 function toggleTheme(){const r=document.documentElement;const cur=r.getAttribute('data-theme')=='light'?'dark':'light';r.setAttribute('data-theme',cur);document.getElementById('thb').textContent=cur=='light'?'☀️':'🌙'}
-const toD=iso=>new Date(iso+'T00:00:00');
+const toD=iso=>new Date(Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10)));
 const diffDays=(a,b)=>Math.round((toD(b)-toD(a))/86400000);
 const u=i=>[...new Set(D.map(r=>r[i]))].filter(Boolean).sort();
 const fmt=n=>Math.round(n).toLocaleString('es-MX'),pc=(a,b)=>(b?100*a/b:null);
