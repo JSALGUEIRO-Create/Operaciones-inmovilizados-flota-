@@ -196,6 +196,9 @@ body.junta #side,body.junta .topbar{display:none!important}body.junta #shell{dis
 .cpR{min-width:0}.cpRow input{min-width:0}.mailPrev{overflow-x:auto}
 #m .br,#m .kpi,#m .t,#m svg rect[data-k]{cursor:pointer}#m .br:hover{background:rgba(79,140,255,.1);border-radius:6px}#m .kpi:hover{border-color:var(--pr)}#m table tr:not(:first-child):hover td{background:rgba(79,140,255,.09)}#m .card.story,#m .card.story *{cursor:default}
 #mainWrap .np-nav{top:62px}#mainWrap .np{margin-top:-16px}
+.tbA button.xl{background:linear-gradient(135deg,#1d7a46,#2fb872)!important;color:#fff!important;border-color:transparent!important}
+.xlP{border:1px solid var(--bd);border-radius:14px;padding:12px;background:var(--card)}.xlH{font-weight:700;font-size:15px;margin:2px 4px 10px}
+.xlR{display:grid;grid-template-columns:22px 170px 1fr;gap:8px;align-items:center;padding:7px 6px;border-bottom:1px solid var(--bd);font-size:13px}.xlR:last-child{border:0}.xlR i{font-style:normal;color:#2fb872;font-weight:800}.xlR span{color:var(--mu);font-size:12px}.xlR.off{opacity:.4}.xlR.off i{color:var(--mu)}
 </style></head><body>
 <div id="loginWrap"><div class="lgBrand"><i>Mantenimiento de Activos Logísticos</i></div><div class="card">
   <h2 style="margin-bottom:4px">🔒 Flota Inmovilizada</h2>
@@ -211,7 +214,7 @@ body.junta #side,body.junta .topbar{display:none!important}body.junta #shell{dis
 <div class="sbHead"><div class="sbLogo">PX</div><div class="sbBrand"><b>PAQUETEXPRESS</b><span>Flota inmovilizada · Mantenimiento de Activos Logísticos</span></div><button class="sbCol" onclick="sideCol()" title="Contraer o expandir menú">‹</button></div>
 <div id="sbKpi"></div><nav id="nav"></nav>
 <div class="sbFoot"><span id="userTag"></span><div class="sbRow"><span class="chip hide" id="btnUpload" onclick="openUpload()">📤 <span class="tx">Cargar archivos</span></span><span class="chip" onclick="toggleTheme()" id="thb">🌙</span><span class="chip" onclick="doLogout()">⎋ <span class="tx">Salir</span></span></div></div>
-</aside><div id="mainWrap"><div class="topbar"><button class="hamb" onclick="sideDrawer()">☰</button><div class="tbT"><h1 id="tbTitle"></h1><span id="tbSub"></span></div><div class="tbA"><span class="pill2" id="tbDate"></span><button class="wa" onclick="waOpen()">💬 <span>WhatsApp</span></button><button class="ml" onclick="mailOpen()">✉️ <span>Correo</span></button><button id="czB" onclick="czAll()">Contraer todo</button></div></div><main id="m"></main></div></div>
+</aside><div id="mainWrap"><div class="topbar"><button class="hamb" onclick="sideDrawer()">☰</button><div class="tbT"><h1 id="tbTitle"></h1><span id="tbSub"></span></div><div class="tbA"><span class="pill2" id="tbDate"></span><button class="wa" onclick="waOpen()">💬 <span>WhatsApp</span></button><button class="ml" onclick="mailOpen()">✉️ <span>Correo</span></button><button class="xl" onclick="xlsOpen()">📊 <span>Excel</span></button><button id="czB" onclick="czAll()">Contraer todo</button></div></div><main id="m"></main></div></div>
 </div>
 <div class="ov" id="rOv"><div class="card" id="rOvb" style="max-width:780px"></div></div>
 <div class="ov" id="ov" onclick="if(event.target.id=='ov')closeModal()"><div class="card"><h3 id="ovt"></h3><div id="ovb"></div></div></div>
@@ -613,7 +616,7 @@ function paqToggle(){PQ.open=!PQ.open;el('paqBub').classList.remove('on');const 
   paqSay('bot',`Hola <b>${esc(ME)}</b> 👋 Soy Paquetín. Puedo responderte sobre unidades, fallas, sucursales y regiones, y armarte <b>reportes en Excel</b>. Pregunta con tus palabras, por ejemplo: <i>“detenidas de GDL02”</i>, <i>“historial de la unidad M002161”</i> o <i>“resumen de octubre en Excel”</i>.`)}
  else if(PQ.open)setTimeout(()=>el('pqin')&&el('pqin').focus(),50)}
 function paqSay(w,h,x){const b=el('pqm');if(!b)return;const d=document.createElement('div');d.className='pq '+w;d.innerHTML=h+(x?`<br><button class="pqx" onclick="paqXls(${PQ.msgs.length})">📊 Descargar Excel</button>`:'');b.appendChild(d);PQ.msgs.push(x||null);b.scrollTop=b.scrollHeight}
-function paqXls(i){const x=PQ.msgs[i];if(!x)return;const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(x.rows),(x.name||'Reporte').slice(0,30));XLSX.writeFile(wb,'Paquetin_'+(x.name||'reporte').replace(/\W+/g,'_')+'_'+TD()+'.xlsx')}
+function paqXls(i){const x=PQ.msgs[i];if(!x)return;try{if(x.rows&&x.rows.length&&window.XW){XW.save(XW.simple(x.rows,(x.name||'Reporte').slice(0,30),'Paquetín · '+(x.name||'Reporte'),'Corte '+fmtEsLong(TODAY)+' · '+x.rows.length+' registros'),'Paquetin_'+(x.name||'reporte').replace(/\W+/g,'_')+'_'+TD()+'.xlsx');return}}catch(e){console.warn('XW',e)}const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(x.rows),(x.name||'Reporte').slice(0,30));XLSX.writeFile(wb,'Paquetin_'+(x.name||'reporte').replace(/\W+/g,'_')+'_'+TD()+'.xlsx')}
 function paqSend(t){const i=el('pqin');t=(t||i.value).trim();if(!t)return;i.value='';paqSay('me',esc(t));setTimeout(()=>{let r;try{r=paqAnswer(t)}catch(e){r={h:'Tuve un problema al procesar eso. Intenta reformular la pregunta.'}}paqSay('bot',r.h,r.x)},250)}
 // --- motor de respuestas (reglas sobre los datos del portal) ---
 function paqRange(q){const y=+TODAY.slice(0,4);let m=MESES.findIndex(n=>q.includes(n));
@@ -922,6 +925,140 @@ function xDecorate(){
 }
 const _rnX=render;render=function(){_rnX();try{xDecorate()}catch(e){console.warn(e)}};
 
+// ====== XW: generador de .xlsx sin dependencias (formato, condicionales y gráficas nativas) ======
+const XW=(()=>{
+const enc=new TextEncoder();
+const crcT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+const u16=n=>[n&255,(n>>8)&255],u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+function zip(files){const parts=[],cen=[];let off=0;
+ files.forEach(([name,data])=>{const nb=enc.encode(name),c=crc(data);
+  const lh=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0)]);
+  parts.push(lh,nb,data);
+  cen.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);
+  off+=lh.length+nb.length+data.length});
+ const cl=cen.reduce((s,x)=>s+x.length,0);
+ parts.push(...cen,new Uint8Array([0x50,0x4b,5,6,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cl),...u32(off),...u16(0)]));
+ return new Blob(parts,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const X=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+const col=n=>{let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+const ref=(r,c)=>col(c)+r, abs=(r,c)=>'$'+col(c)+'$'+r;
+const rgb=h=>'FF'+String(h).replace('#','').toUpperCase();
+const serial=iso=>{if(!iso)return null;const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?(Date.UTC(+m[1],+m[2]-1,+m[3])-Date.UTC(1899,11,30))/864e5:null};
+class Book{
+ constructor(o){this.o=o||{};this.sheets=[];this.fonts=[];this.fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'];this.borders=[];this.nfs=[];this.xfs=[];this.dxfs=[];this.sst=[];this.sstM=new Map();this.nChart=0;this.font0=this.o.font||'Segoe UI';
+  this.fonts.push(`<font><sz val="10"/><color rgb="FF1C2B4A"/><name val="${this.font0}"/></font>`);this.borders.push('<border><left/><right/><top/><bottom/><diagonal/></border>');this.xfs.push('<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>');this._xm={'{}':0}}
+ idx(arr,x){let i=arr.indexOf(x);if(i<0){arr.push(x);i=arr.length-1}return i}
+ st(sp){sp=sp||{};const k=JSON.stringify(sp);if(this._xm[k]!=null)return this._xm[k];
+  const f=`<font>${sp.b?'<b/>':''}${sp.i?'<i/>':''}${sp.u?'<u/>':''}<sz val="${sp.sz||10}"/><color rgb="${rgb(sp.fc||'1C2B4A')}"/><name val="${sp.fn||this.font0}"/></font>`;
+  const fi=this.idx(this.fonts,f);let fl=0;if(sp.bg)fl=this.idx(this.fills,`<fill><patternFill patternType="solid"><fgColor rgb="${rgb(sp.bg)}"/><bgColor indexed="64"/></patternFill></fill>`);
+  const side=(n,v)=>v?`<${n} style="${v[0]}"><color rgb="${rgb(v[1])}"/></${n}>`:`<${n}/>`;const bd=sp.bd||{};
+  const bi=this.idx(this.borders,`<border>${side('left',bd.l)}${side('right',bd.r)}${side('top',bd.t)}${side('bottom',bd.b)}<diagonal/></border>`);
+  let nf=0;if(sp.nf){const BI={'0':1,'0.00':2,'#,##0':3,'#,##0.00':4,'0%':9,'0.00%':10};if(BI[sp.nf]!=null)nf=BI[sp.nf];else{let j=this.nfs.indexOf(sp.nf);if(j<0){this.nfs.push(sp.nf);j=this.nfs.length-1}nf=164+j}}
+  const al=(sp.h||sp.v||sp.wrap||sp.ind)?`<alignment${sp.h?` horizontal="${sp.h}"`:''} vertical="${sp.v||'center'}"${sp.wrap?' wrapText="1"':''}${sp.ind?` indent="${sp.ind}"`:''}/>`:'';
+  const xf=`<xf numFmtId="${nf}" fontId="${fi}" fillId="${fl}" borderId="${bi}" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"${al?' applyAlignment="1">'+al+'</xf>':'/>'}`;
+  this.xfs.push(xf);return this._xm[k]=this.xfs.length-1}
+ dxf(sp){const x=`<dxf>${(sp.fc||sp.b)?`<font>${sp.b?'<b/>':''}${sp.fc?`<color rgb="${rgb(sp.fc)}"/>`:''}</font>`:''}${sp.bg?`<fill><patternFill patternType="solid"><fgColor rgb="${rgb(sp.bg)}"/><bgColor rgb="${rgb(sp.bg)}"/></patternFill></fill>`:''}</dxf>`;return this.idx(this.dxfs,x)}
+ ss(s){s=String(s);let i=this.sstM.get(s);if(i==null){i=this.sst.length;this.sst.push(s);this.sstM.set(s,i)}return i}
+ sheet(name,o){const s=new Sheet(this,name.slice(0,31).replace(/[\\\/\?\*\[\]:]/g,'-'),o||{});this.sheets.push(s);return s}
+ blob(){const F=[],ct=[],nS=this.sheets.length;let nD=0,nC=0;
+  const sheetsXml=this.sheets.map((s,i)=>s.xml(i+1,()=>++nD,()=>++nC,F,ct));
+  this.sheets.forEach((s,i)=>F.push(['xl/worksheets/sheet'+(i+1)+'.xml',enc.encode(sheetsXml[i])]));
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const styles=H+`<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${this.nfs.length?`<numFmts count="${this.nfs.length}">${this.nfs.map((f,i)=>`<numFmt numFmtId="${164+i}" formatCode="${X(f)}"/>`).join('')}</numFmts>`:''}<fonts count="${this.fonts.length}">${this.fonts.join('')}</fonts><fills count="${this.fills.length}">${this.fills.join('')}</fills><borders count="${this.borders.length}">${this.borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${this.xfs.length}">${this.xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>${this.dxfs.length?`<dxfs count="${this.dxfs.length}">${this.dxfs.join('')}</dxfs>`:'<dxfs count="0"/>'}</styleSheet>`;
+  const sst=H+`<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${this.sst.length}" uniqueCount="${this.sst.length}">${this.sst.map(s=>`<si><t xml:space="preserve">${X(s)}</t></si>`).join('')}</sst>`;
+  const wb=H+`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>${this.sheets.map((s,i)=>`<sheet name="${X(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`;
+  const wrels=H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${this.sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${nS+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId${nS+2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>`;
+  const rels=H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`;
+  const now=new Date().toISOString().replace(/\.\d+Z$/,'Z');
+  const core=H+`<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${X(this.o.title||'Reporte')}</dc:title><dc:creator>${X(this.o.author||'Portal Flota Inmovilizada')}</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified></cp:coreProperties>`;
+  const app=H+`<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Excel</Application></Properties>`;
+  const T='application/vnd.openxmlformats-officedocument.';
+  const cts=H+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="${T}spreadsheetml.sheet.main+xml"/>${this.sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="${T}spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/xl/styles.xml" ContentType="${T}spreadsheetml.styles+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="${T}spreadsheetml.sharedStrings+xml"/>${ct.join('')}<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="${T}extended-properties+xml"/></Types>`;
+  const all=[['[Content_Types].xml',enc.encode(cts)],['_rels/.rels',enc.encode(rels)],['docProps/core.xml',enc.encode(core)],['docProps/app.xml',enc.encode(app)],['xl/workbook.xml',enc.encode(wb)],['xl/_rels/workbook.xml.rels',enc.encode(wrels)],['xl/styles.xml',enc.encode(styles)],['xl/sharedStrings.xml',enc.encode(sst)],...F];
+  return zip(all)}
+}
+class Sheet{
+ constructor(b,name,o){this.b=b;this.name=name;this.o=o;this.cells=new Map();this.widths={};this.heights={};this.merges=[];this.cfs=[];this.charts=[];this.links=[];this.freezeAt=null;this.af=null;this.maxR=1;this.maxC=1;this.prio=0}
+ q(){return "'"+this.name.replace(/'/g,"''")+"'"}
+ set(r,c,v,sp){const s=this.b.st(sp);this.cells.set(r+','+c,{r,c,v,s});if(r>this.maxR)this.maxR=r;if(c>this.maxC)this.maxC=c;return this}
+ fill(r1,c1,r2,c2,sp){for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++)if(!this.cells.has(r+','+c))this.set(r,c,null,sp);return this}
+ merge(r1,c1,r2,c2){this.merges.push(ref(r1,c1)+':'+ref(r2,c2));return this}
+ colW(arr,start){arr.forEach((w,i)=>this.widths[(start||1)+i]=w);return this}
+ rowH(r,h){this.heights[r]=h;return this}
+ freeze(r,c){this.freezeAt=[r,c];return this}
+ filter(r1,c1,r2,c2){this.af=ref(r1,c1)+':'+ref(r2,c2);return this}
+ link(r,c,sheetName,cellRef){this.links.push([ref(r,c),"'"+sheetName.replace(/'/g,"''")+"'!"+(cellRef||'A1')]);return this}
+ dataBar(rng,color){this.cfs.push(`<conditionalFormatting sqref="${rng}"><cfRule type="dataBar" priority="${++this.prio}"><dataBar><cfvo type="num" val="0"/><cfvo type="max"/><color rgb="${rgb(color||'5A8CFF')}"/></dataBar></cfRule></conditionalFormatting>`)}
+ scale3(rng,c1,c2,c3){this.cfs.push(`<conditionalFormatting sqref="${rng}"><cfRule type="colorScale" priority="${++this.prio}"><colorScale><cfvo type="min"/><cfvo type="percentile" val="50"/><cfvo type="max"/><color rgb="${rgb(c1)}"/><color rgb="${rgb(c2)}"/><color rgb="${rgb(c3)}"/></colorScale></cfRule></conditionalFormatting>`)}
+ cell(rng,op,val,sp,stop){const d=this.b.dxf(sp);this.cfs.push(`<conditionalFormatting sqref="${rng}"><cfRule type="cellIs" dxfId="${d}" priority="${++this.prio}"${stop?' stopIfTrue="1"':''} operator="${op}"><formula>${X(val)}</formula></cfRule></conditionalFormatting>`)}
+ expr(rng,formula,sp){const d=this.b.dxf(sp);this.cfs.push(`<conditionalFormatting sqref="${rng}"><cfRule type="expression" dxfId="${d}" priority="${++this.prio}"><formula>${X(formula)}</formula></cfRule></conditionalFormatting>`)}
+ chart(def,r,c,w,h){this.charts.push({def,r,c,w:w||560,h:h||300});return this}
+ xml(n,nextD,nextC,F,ct){
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';let rows={};
+  this.cells.forEach(x=>{(rows[x.r]=rows[x.r]||[]).push(x)});
+  Object.keys(this.heights).forEach(r=>{rows[r]=rows[r]||[]});
+  const rowsXml=Object.keys(rows).map(Number).sort((a,b)=>a-b).map(r=>{const cs=rows[r].sort((a,b)=>a.c-b.c);const h=this.heights[r];
+   return `<row r="${r}"${h?` ht="${h}" customHeight="1"`:''}>${cs.map(x=>{const a=ref(x.r,x.c),v=x.v;
+    if(v==null||v==='')return `<c r="${a}" s="${x.s}"/>`;
+    if(typeof v==='number'&&isFinite(v))return `<c r="${a}" s="${x.s}"><v>${v}</v></c>`;
+    if(typeof v==='object'&&v.f)return `<c r="${a}" s="${x.s}"${typeof v.v==='string'?' t="str"':''}><f>${X(v.f)}</f>${v.v!=null?`<v>${X(v.v)}</v>`:''}</c>`;
+    return `<c r="${a}" s="${x.s}" t="s"><v>${this.b.ss(v)}</v></c>`}).join('')}</row>`}).join('');
+  const cols=Object.keys(this.widths).map(Number).sort((a,b)=>a-b).map(c=>`<col min="${c}" max="${c}" width="${this.widths[c]}" customWidth="1"/>`).join('');
+  let pane='';if(this.freezeAt){const [fr,fc]=this.freezeAt;pane=`<pane${fc?` xSplit="${fc}"`:''}${fr?` ySplit="${fr}"`:''} topLeftCell="${ref(fr+1,fc+1)}" activePane="${fr&&fc?'bottomRight':fr?'bottomLeft':'topRight'}" state="frozen"/>`}
+  const tab=this.o.tab?`<tabColor rgb="${rgb(this.o.tab)}"/>`:'';
+  let dr='',rid='';
+  if(this.charts.length){const di=nextD();const dxml=[],drels=[];
+   this.charts.forEach((ch,i)=>{const ci=nextC();F.push(['xl/charts/chart'+ci+'.xml',enc.encode(chartXml(ch.def,this))]);ct.push(`<Override PartName="/xl/charts/chart${ci}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`);
+    drels.push(`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart${ci}.xml"/>`);
+    dxml.push(`<oneCellAnchor><from><col>${ch.c-1}</col><colOff>0</colOff><row>${ch.r-1}</row><rowOff>0</rowOff></from><ext cx="${Math.round(ch.w*9525)}" cy="${Math.round(ch.h*9525)}"/><graphicFrame><nvGraphicFramePr><cNvPr id="${i+1}" name="Gráfica ${i+1}"/><cNvGraphicFramePr/></nvGraphicFramePr><xfrm/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId${i+1}"/></a:graphicData></a:graphic></graphicFrame><clientData/></oneCellAnchor>`)});
+   F.push(['xl/drawings/drawing'+di+'.xml',enc.encode(H+`<wsDr xmlns="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing">${dxml.join('')}</wsDr>`)]);
+   F.push(['xl/drawings/_rels/drawing'+di+'.xml.rels',enc.encode(H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${drels.join('')}</Relationships>`)]);
+   F.push(['xl/worksheets/_rels/sheet'+n+'.xml.rels',enc.encode(H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing${di}.xml"/></Relationships>`)]);
+   ct.push(`<Override PartName="/xl/drawings/drawing${di}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`);dr='<drawing r:id="rId1"/>'}
+  const land=this.o.portrait?'portrait':'landscape';
+  return H+`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr>${tab}<pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:${ref(this.maxR,this.maxC)}"/><sheetViews><sheetView${this.o.grid===false?' showGridLines="0"':''} workbookViewId="0"${n==1?' tabSelected="1"':''}${this.o.zoom?` zoomScale="${this.o.zoom}" zoomScaleNormal="${this.o.zoom}"`:''}>${pane}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols?`<cols>${cols}</cols>`:''}<sheetData>${rowsXml}</sheetData>${this.af?`<autoFilter ref="${this.af}"/>`:''}${this.merges.length?`<mergeCells count="${this.merges.length}">${this.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}${this.cfs.join('')}${this.links.length?`<hyperlinks>${this.links.map(([a,l])=>`<hyperlink ref="${a}" location="${X(l)}" display="${X(l)}"/>`).join('')}</hyperlinks>`:''}<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="1" orientation="${land}" fitToWidth="1" fitToHeight="0"/><headerFooter><oddFooter>&amp;L${X(this.b.o.footer||'Portal Flota Inmovilizada')}&amp;RPágina &amp;P de &amp;N</oddFooter></headerFooter>${dr}</worksheet>`}
+}
+// ---------- Gráficas nativas ----------
+const A='xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+const txp=(sz,color,b)=>`<txPr><a:bodyPr ${A}/><a:lstStyle ${A}/><a:p ${A}><a:pPr><a:defRPr sz="${sz*100}" b="${b?1:0}"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:latin typeface="Segoe UI"/></a:defRPr></a:pPr><a:endParaRPr lang="es-MX"/></a:p></txPr>`;
+const sf=c=>`<a:solidFill ${A}><a:srgbClr val="${String(c).replace('#','')}"/></a:solidFill>`;
+function chartXml(d,sh){
+ const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',q=d.sheetRef?"'"+d.sheetRef.replace(/'/g,"''")+"'":sh.q(),rng=(c1,r1,c2,r2)=>`${q}!${abs(r1,c1)}:${abs(r2,c2)}`;
+ const pal=d.colors||['2F6BFF','F0A500','E0364A','1DA86A','7A5AF8','00A3C4','8A99B8','FF7A59'];
+ const ser=(s,i)=>{const color=(s.color||pal[i%pal.length]).replace('#','');
+  const tx=s.name!=null?`<tx><strRef><f>${X(q+'!'+abs(s.nameRow||1,s.valCol))}</f></strRef></tx>`:'';
+  const cat=`<cat><strRef><f>${X(rng(s.catCol,s.r1,s.catCol,s.r2))}</f></strRef></cat>`;
+  const val=`<val><numRef><f>${X(rng(s.valCol,s.r1,s.valCol,s.r2))}</f></numRef></val>`;
+  const lbl=d.labels?`<dLbls><numFmt formatCode="${X(d.lblFmt||'General')}" sourceLinked="0"/><spPr><a:noFill ${A}/><a:ln ${A}><a:noFill/></a:ln></spPr>${txp(9,'1C2B4A',true)}<showLegendKey val="0"/><showVal val="1"/><showCatName val="0"/><showSerName val="0"/><showPercent val="0"/><showBubbleSize val="0"/></dLbls>`:'';
+  if(d.type=='line')return `<ser><idx val="${i}"/><order val="${i}"/>${tx}<spPr><a:ln ${A} w="31750" cap="rnd"><a:solidFill><a:srgbClr val="${color}"/></a:solidFill><a:round/></a:ln></spPr><marker><symbol val="${d.markers===false?'none':'circle'}"/><size val="6"/><spPr><a:solidFill ${A}><a:srgbClr val="${color}"/></a:solidFill><a:ln ${A}><a:noFill/></a:ln></spPr></marker>${lbl}${cat}${val}<smooth val="0"/></ser>`;
+  if(d.type=='doughnut'){const n=s.r2-s.r1+1;const dpt=Array.from({length:n},(_,k)=>`<dPt><idx val="${k}"/><bubble3D val="0"/><spPr><a:solidFill ${A}><a:srgbClr val="${(d.sliceColors?d.sliceColors[k%d.sliceColors.length]:pal[k%pal.length]).replace('#','')}"/></a:solidFill><a:ln ${A} w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></spPr></dPt>`).join('');
+   const dl=`<dLbls><spPr><a:noFill ${A}/><a:ln ${A}><a:noFill/></a:ln></spPr>${txp(10,'FFFFFF',true)}<showLegendKey val="0"/><showVal val="1"/><showCatName val="0"/><showSerName val="0"/><showPercent val="0"/><showBubbleSize val="0"/><showLeaderLines val="0"/></dLbls>`;
+   return `<ser><idx val="${i}"/><order val="${i}"/>${tx}${dpt}${dl}${cat}${val}</ser>`}
+  return `<ser><idx val="${i}"/><order val="${i}"/>${tx}<spPr>${sf(color)}</spPr><invertIfNegative val="0"/>${lbl}${cat}${val}</ser>`};
+ const sers=d.series.map(ser).join('');
+ const grid=`<majorGridlines><spPr><a:ln ${A} w="6350"><a:solidFill><a:srgbClr val="E3E9F4"/></a:solidFill></a:ln></spPr></majorGridlines>`;
+ const catAx=(pos,rev)=>`<catAx><axId val="111"/><scaling><orientation val="${rev?'maxMin':'minMax'}"/></scaling><delete val="0"/><axPos val="${pos}"/><numFmt formatCode="General" sourceLinked="0"/><majorTickMark val="none"/><minorTickMark val="none"/><tickLblPos val="nextTo"/><spPr><a:ln ${A} w="9525"><a:solidFill><a:srgbClr val="C5CFE3"/></a:solidFill></a:ln></spPr>${txp(9,'5D6B82',false)}<crossAx val="222"/><crosses val="autoZero"/><auto val="1"/><lblAlgn val="ctr"/><lblOffset val="100"/><noMultiLvlLbl val="0"/></catAx>`;
+ const valAx=(pos,hide)=>`<valAx><axId val="222"/><scaling><orientation val="minMax"/></scaling><delete val="${hide?1:0}"/><axPos val="${pos}"/>${hide?'':grid}<numFmt formatCode="${X(d.axFmt||'General')}" sourceLinked="0"/><majorTickMark val="none"/><minorTickMark val="none"/><tickLblPos val="nextTo"/><spPr><a:ln ${A}><a:noFill/></a:ln></spPr>${txp(9,'5D6B82',false)}<crossAx val="111"/><crosses val="autoZero"/><crossBetween val="between"/></valAx>`;
+ let body;
+ if(d.type=='doughnut')body=`<doughnutChart><varyColors val="1"/>${sers}<firstSliceAng val="0"/><holeSize val="58"/></doughnutChart>`;
+ else if(d.type=='line')body=`<lineChart><grouping val="standard"/><varyColors val="0"/>${sers}<marker val="1"/><axId val="111"/><axId val="222"/></lineChart>${catAx('b')}${valAx('l')}`;
+ else{const horiz=d.type=='bar';body=`<barChart><barDir val="${horiz?'bar':'col'}"/><grouping val="clustered"/><varyColors val="0"/>${sers}<gapWidth val="${d.gap||55}"/><axId val="111"/><axId val="222"/></barChart>${catAx(horiz?'l':'b',horiz)}${valAx(horiz?'b':'l',d.labels&&horiz)}`}
+ const title=d.title?`<title><tx><rich><a:bodyPr ${A}/><a:lstStyle ${A}/><a:p ${A}><a:pPr><a:defRPr sz="1300" b="1"/></a:pPr><a:r><a:rPr lang="es-MX" sz="1300" b="1"><a:solidFill><a:srgbClr val="0B2A6B"/></a:solidFill><a:latin typeface="Segoe UI"/></a:rPr><a:t>${X(d.title)}</a:t></a:r></a:p></rich></tx><overlay val="0"/></title><autoTitleDeleted val="0"/>`:'<autoTitleDeleted val="1"/>';
+ const leg=d.legend?`<legend><legendPos val="${d.legend}"/><overlay val="0"/>${txp(9,'5D6B82',false)}</legend>`:'';
+ return H+`<chartSpace xmlns="http://schemas.openxmlformats.org/drawingml/2006/chart" ${A} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><roundedCorners val="0"/><chart>${title}<plotArea><layout/>${body}<spPr><a:noFill/></spPr></plotArea>${leg}<plotVisOnly val="1"/><dispBlanksAs val="gap"/></chart><spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="9525"><a:solidFill><a:srgbClr val="D5DDEC"/></a:solidFill></a:ln></spPr></chartSpace>`}
+function simple(rows,sheetName,title,sub){const B=new Book({title:title||sheetName,footer:'Paquetexpress · Mantenimiento de Activos Logísticos'}),ws=B.sheet(sheetName||'Reporte',{grid:false,tab:'2F6BFF'});
+ const keys=Object.keys(rows[0]||{Resultado:''}),nC=keys.length;
+ const s1={b:1,sz:20,fc:'FFFFFF',bg:'0B2A6B',h:'left',ind:1},s2={sz:10.5,fc:'BFD0F5',bg:'0B2A6B',h:'left',ind:1};
+ ws.set(1,1,title||sheetName,s1);ws.fill(1,2,1,Math.max(nC,2),s1).merge(1,1,1,Math.max(nC,2)).rowH(1,36);ws.set(2,1,sub||'',s2);ws.fill(2,2,2,Math.max(nC,2),s2).merge(2,1,2,Math.max(nC,2)).rowH(2,22);ws.fill(3,1,3,Math.max(nC,2),{bg:'F0A500'}).rowH(3,4);
+ keys.forEach((k,i)=>{const vals=rows.map(r=>r[k]),isN=vals.length&&vals.every(v=>typeof v=='number'&&isFinite(v)),isInt=isN&&vals.every(v=>Number.isInteger(v));
+  const wlen=Math.min(48,Math.max(String(k).length+2,...vals.slice(0,300).map(v=>String(v==null?'':v).length+2),8));ws.widths[i+1]=wlen;
+  ws.set(5,i+1,k,{b:1,sz:10,fc:'FFFFFF',bg:'0B2A6B',h:'center',wrap:1,bd:{b:['medium','F0A500']}});
+  rows.forEach((r,j)=>{let v=r[k];const sp={sz:10,bd:{b:['thin','D5DDEC']},h:isN?'center':'left'};if(isN)sp.nf=isInt?'#,##0':'#,##0.00';else if(typeof v=='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)){v=serial(v);sp.nf='dd/mm/yyyy';sp.h='center'}ws.set(6+j,i+1,v,sp)})});
+ ws.rowH(5,32);const last=5+rows.length;if(rows.length){ws.expr(`A6:${col(nC)}${last}`,'MOD(ROW(),2)=0',{bg:'F6F8FC'});ws.filter(5,1,last,nC)}ws.freeze(5,0);return B}
+const save=(book,name)=>{const bl=book.blob(),a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},1500)};
+return {Book,col,ref,serial,save,zip,simple}})();
+
 // ====== Briefing de bienvenida (centro de mando) + conteo animado ======
 const WBN={Jruelas:'Jesús',Dvelarde:'Daniel',Azazueta:'Alejandro',Eaguirre:'Edgardo',Gacosta:'Gilberto',Scorona:'Sergio',Jsalgueiro:'José Luis'};
 function wbCount(node,to,dec,suf,dur,delay){const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce){node.textContent=to.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+(suf||'');return}
@@ -957,13 +1094,125 @@ function xCount(){const m=document.getElementById('m');if(!m||__cuTab===cur)retu
  m.querySelectorAll('.card.kpi b').forEach((b,i)=>{const t=b.textContent.trim(),mt=t.match(/^([\d,]+(?:\.\d+)?)(%?)$/);if(!mt)return;const v=parseFloat(mt[1].replace(/,/g,'')),dec=(mt[1].split('.')[1]||'').length;if(v>0)wbCount(b,v,dec,mt[2],800,i*60)})}
 const _rnW=render;render=function(){_rnW();try{xCount()}catch(e){}};
 
+// ====== Reporte ejecutivo en Excel (hojas con formato, semáforos y gráficas nativas) ======
+const XC={navy:'0B2A6B',blue:'2F6BFF',lb:'EAF1FF',or:'F0A500',rd:'E0364A',gn:'1DA86A',mu:'5D6B82',bg:'F3F6FB',bd:'D5DDEC',tx:'1C2B4A',w:'FFFFFF'};
+const XMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const xMes=m=>XMES[+m.slice(5,7)-1]+' '+m.slice(0,4);
+function xBanner(ws,title,sub,lastCol){const s1={b:1,sz:20,fc:XC.w,bg:XC.navy,h:'left',ind:1},s2={sz:10.5,fc:'BFD0F5',bg:XC.navy,h:'left',ind:1};
+ ws.set(1,1,title,s1).fill(1,2,1,lastCol,s1).merge(1,1,1,lastCol).rowH(1,36);
+ ws.set(2,1,sub,s2).fill(2,2,2,lastCol,s2).merge(2,1,2,lastCol).rowH(2,22);
+ ws.fill(3,1,3,lastCol,{bg:XC.or}).rowH(3,4)}
+// tabla genérica: cols=[{h,w,k,t:'text'|'int'|'num1'|'pct'|'date'|'wrap',a:'left'|'center'}]
+function xTable(ws,r0,cols,items,opt){opt=opt||{};const hdr={b:1,sz:10,fc:XC.w,bg:XC.navy,h:'center',wrap:1,bd:{b:['medium',XC.or]}};
+ cols.forEach((c,i)=>{ws.set(r0,i+1,c.h,hdr);if(c.w)ws.widths[i+1]=c.w});ws.rowH(r0,32);
+ const NF={int:'#,##0',num1:'#,##0.0',pct:'0.0%',date:'dd/mm/yyyy',text:null,wrap:null};
+ items.forEach((it,j)=>{const r=r0+1+j;cols.forEach((c,i)=>{let v=c.k(it,j);if(c.t=='date')v=XW.serial(v);
+  const sp={sz:10,bd:{b:['thin',XC.bd]},h:c.a||(['int','num1','pct','date'].includes(c.t)?'center':'left'),wrap:c.t=='wrap'?1:0};if(NF[c.t])sp.nf=NF[c.t];if(c.b)sp.b=1;if(c.fc)sp.fc=c.fc;
+  ws.set(r,i+1,v,sp)});if(opt.rowH)ws.rowH(r,opt.rowH)});
+ return {r1:r0+1,r2:r0+items.length,n:items.length}}
+function xTotal(ws,r,cols,r1,r2,sums){const sp={b:1,sz:10,bg:XC.lb,bd:{t:['thin',XC.blue],b:['medium',XC.blue]},h:'center'};
+ cols.forEach((c,i)=>{const cl=XW.col(i+1);let v=i==0?'TOTAL':null;if(sums[i]){let tot=0;for(let q=0;q<(sums[i].vals||[]).length;q++)tot+=sums[i].vals[q];v={f:`SUM(${cl}${r1}:${cl}${r2})`,v:tot}}ws.set(r,i+1,v,{...sp,nf:'#,##0',h:i==0?'left':'center'})})}
+function xlsReport(d,scope,secs){
+ secs=secs||new Set(['res','reg','suc','falla','tipo','ant','es','crit','rec','hall']);const has=k=>secs.has(k);
+ const B=new XW.Book({title:'Reporte ejecutivo · Flota inmovilizada',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Flota inmovilizada'});
+ const H=d.H,FL=d.FL,up=d.up,pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'–',wd=r=>dsc2(r),cnt=d.cnt||{};
+ const REG=(()=>{const L=[...d.reg];if(!CP.suc.size&&!CP.tipo.size&&!CP.falla.size&&!CP.min){const have=new Set(L.map(g=>g.k));[...new Set(D.map(x=>x[2]))].filter(k=>k&&!have.has(k)&&(!CP.reg.size||CP.reg.has(k))).forEach(k=>{const fl=fleetSum(new Set([k]));if(fl)L.push({k,n:0,d:0,mx:0,fl,up:100})})}return L.sort((a,b)=>b.n-a.n||(b.fl||0)-(a.fl||0))})();
+ const sub=`Corte ${fmtEsLong(TODAY)} · Alcance: ${scope}`;
+ const names={res:'Resumen',reg:'Regiones',suc:'Sucursales',ft:'Fallas y tipos',ant:'Antigüedad',det:'Detenidas hoy',crit:'Críticas +30 días',rec:'Reincidentes',es:'Entradas y salidas',tr:'Tendencia mensual'};
+ const W={};W.res=B.sheet(names.res,{grid:false,tab:XC.navy,zoom:95});
+ if(has('reg'))W.reg=B.sheet(names.reg,{grid:false,tab:XC.blue});if(has('suc'))W.suc=B.sheet(names.suc,{grid:false,tab:XC.blue});
+ if(has('falla')||has('tipo'))W.ft=B.sheet(names.ft,{grid:false,tab:XC.blue});if(has('ant'))W.ant=B.sheet(names.ant,{grid:false,tab:XC.blue});
+ W.det=B.sheet(names.det,{grid:false,tab:XC.rd});if(has('crit'))W.crit=B.sheet(names.crit,{grid:false,tab:XC.rd});if(has('rec'))W.rec=B.sheet(names.rec,{grid:false,tab:XC.or});
+ if(has('es'))W.es=B.sheet(names.es,{grid:false,tab:XC.gn});W.tr=B.sheet(names.tr,{grid:false,tab:XC.gn});
+ const unitCols=(extra)=>[{h:'Móvil',w:12,k:r=>r[11],b:1},{h:'Sucursal',w:12,k:r=>r[1]},{h:'Región',w:14,k:r=>r[2]},{h:'Descripción',w:16,k:r=>r[3]},{h:'Tipo',w:12,k:r=>r[4]},{h:'Falla',w:18,k:r=>r[5]},{h:'Detalle de la falla',w:38,k:r=>r[14]||'',t:'wrap'},{h:'Ingreso',w:12,t:'date',k:r=>r[7]},{h:'Días detenida',w:12,t:'int',k:r=>wd(r),b:1},{h:'Estatus',w:14,k:r=>r[9]||''},{h:'Lugar',w:12,k:r=>r[10]||''},{h:'Responsable',w:20,k:r=>r[19]||''},...(extra||[])];
+ const unitSheet=(ws,title,rows,extra,note)=>{const cols=unitCols(extra);xBanner(ws,title,sub,cols.length);ws.set(4,1,note||'',{i:1,sz:9.5,fc:XC.mu});
+  const t=xTable(ws,5,cols,rows,{rowH:rows.length&&rows.some(r=>(r[14]||'').length>42)?30:18});const di=cols.findIndex(c=>c.h=='Días detenida')+1,L=XW.col(di);
+  if(t.n){const rg=`${L}${t.r1}:${L}${t.r2}`;ws.dataBar(rg,'F6A5AD');ws.cell(rg,'greaterThan','90',{fc:'9C0006',bg:'FFC7CE',b:1},true);ws.cell(rg,'greaterThan','30',{fc:'7A4B00',bg:'FFE9A8'});
+   ws.expr(`A${t.r1}:${XW.col(cols.length)}${t.r2}`,'MOD(ROW(),2)=0',{bg:'F6F8FC'});ws.filter(5,1,t.r2,cols.length)}
+  ws.freeze(5,1);return t};
+ // ---- Regiones
+ let tReg=null,tAnt=null,tSuc=null,tFal=null,tTip=null,tEs=null;
+ if(W.reg){const ws=W.reg;xBanner(ws,'Unidades detenidas por región',sub,7);
+  const cols=[{h:'Región',w:20,k:g=>g.k,b:1},{h:'Detenidas',w:13,t:'int',k:g=>g.n},{h:'Flota',w:13,t:'int',k:g=>g.fl||0},{h:'Up Time',w:13,t:'pct',k:g=>g.up!=null?g.up/100:null},{h:'Días acumulados',w:16,t:'int',k:g=>g.d},{h:'Promedio de días',w:16,t:'num1',k:g=>g.n?g.d/g.n:0},{h:'Máximo de días',w:16,t:'int',k:g=>g.mx}];
+  tReg=xTable(ws,5,cols,REG);if(tReg.n){ws.dataBar(`B6:B${tReg.r2}`,'7FA8FF');ws.scale3(`D6:D${tReg.r2}`,'F8B4BA','FFE9A8','B7E4C7');
+  xTotal(ws,tReg.r2+1,cols,6,tReg.r2,{1:{vals:REG.map(g=>g.n)},2:{vals:REG.map(g=>g.fl||0)},4:{vals:REG.map(g=>g.d)}});
+  ws.chart({type:'col',title:'Unidades detenidas por región',series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:tReg.r2}],labels:true,colors:['2F6BFF'],gap:60},tReg.r2+4,1,640,300)}ws.freeze(5,0)}
+ // ---- Sucursales
+ if(W.suc){const ws=W.suc;xBanner(ws,'Ranking de sucursales',sub,6);
+  const cols=[{h:'Sucursal',w:16,k:g=>g.k,b:1},{h:'Región',w:16,k:g=>g.reg||''},{h:'Detenidas',w:12,t:'int',k:g=>g.n},{h:'Días acumulados',w:15,t:'int',k:g=>g.d},{h:'Promedio de días',w:15,t:'num1',k:g=>g.n?g.d/g.n:0},{h:'Máximo de días',w:15,t:'int',k:g=>g.mx}];
+  tSuc=xTable(ws,5,cols,d.suc);if(tSuc.n){ws.dataBar(`C6:C${tSuc.r2}`,'7FA8FF');ws.scale3(`E6:E${tSuc.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.filter(5,1,tSuc.r2,6)}
+  const top=Math.min(10,tSuc.n);if(top)ws.chart({type:'bar',title:'Top 10 sucursales con más unidades detenidas',series:[{name:1,nameRow:5,valCol:3,catCol:1,r1:6,r2:5+top}],labels:true,colors:['E0364A'],gap:40},5,8,620,360);ws.freeze(5,1)}
+ // ---- Fallas y tipos
+ if(W.ft){const ws=W.ft;xBanner(ws,'Fallas y tipos de unidad',sub,10);
+  if(has('falla')){const cols=[{h:'Tipo de falla',w:26,k:g=>g.k,b:1},{h:'Detenidas',w:12,t:'int',k:g=>g.n},{h:'Días acumulados',w:15,t:'int',k:g=>g.d},{h:'Promedio de días',w:15,t:'num1',k:g=>g.n?g.d/g.n:0}];
+   tFal=xTable(ws,5,cols,d.falla);if(tFal.n){ws.dataBar(`B6:B${tFal.r2}`,'7FA8FF');ws.scale3(`D6:D${tFal.r2}`,'B7E4C7','FFE9A8','F8B4BA')}}
+  if(has('tipo')){const c0=has('falla')?6:1;const cols=[{h:'Tipo de unidad',w:20,k:g=>g.k,b:1},{h:'Detenidas',w:12,t:'int',k:g=>g.n},{h:'Días acumulados',w:15,t:'int',k:g=>g.d}];
+   cols.forEach((c,i)=>{ws.set(5,c0+i,c.h,{b:1,sz:10,fc:XC.w,bg:XC.navy,h:'center',wrap:1,bd:{b:['medium',XC.or]}});ws.widths[c0+i]=c.w});
+   tTip={n:d.tipo.length,r1:6,r2:5+d.tipo.length,c0};d.tipo.forEach((g,j)=>{const r=6+j,sp={sz:10,bd:{b:['thin',XC.bd]}};ws.set(r,c0,g.k,{...sp,b:1});ws.set(r,c0+1,g.n,{...sp,h:'center',nf:'#,##0'});ws.set(r,c0+2,g.d,{...sp,h:'center',nf:'#,##0'})});
+   if(tTip.n)ws.dataBar(`${XW.col(c0+1)}6:${XW.col(c0+1)}${tTip.r2}`,'7FA8FF')}
+  ws.rowH(5,32);const cx=has('falla')&&has('tipo')?11:6;
+  if(tFal&&tFal.n)ws.chart({type:'bar',title:'Top 10 fallas por unidades detenidas',series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:5+Math.min(10,tFal.n)}],labels:true,colors:['F0A500'],gap:40},5,has('tipo')?11:6,600,340);
+  if(tTip&&tTip.n)ws.chart({type:'doughnut',title:'Detenidas por tipo de unidad',legend:'r',series:[{name:1,nameRow:5,valCol:tTip.c0+1,catCol:tTip.c0,r1:6,r2:tTip.r2}]},tFal&&tFal.n?24:5,has('falla')?11:6,600,330);ws.freeze(5,0)}
+ // ---- Antigüedad
+ if(W.ant){const ws=W.ant;xBanner(ws,'Antigüedad de las unidades detenidas',sub,8);
+  const cols=[{h:'Rango',w:22,k:g=>g.k,b:1},{h:'Unidades',w:13,t:'int',k:g=>g.n},{h:'% de las detenidas',w:18,t:'pct',k:g=>H.length?g.n/H.length:0}];
+  tAnt=xTable(ws,5,cols,d.bu);ws.dataBar(`B6:B${tAnt.r2}`,'7FA8FF');xTotal(ws,tAnt.r2+1,cols,6,tAnt.r2,{1:{vals:d.bu.map(g=>g.n)}});
+  ws.chart({type:'doughnut',title:'Antigüedad de las detenidas',legend:'r',sliceColors:['1DA86A','8BC34A','F0A500','FF7A59','E0364A'],series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:tAnt.r2}]},5,5,560,320);ws.freeze(5,0)}
+ // ---- Detenidas / críticas / reincidentes
+ unitSheet(W.det,'Unidades detenidas al corte',[...H].sort((a,b)=>wd(b)-wd(a)),[{h:'Eventos históricos',w:13,t:'int',k:r=>cnt[r[11]]||1}],'Ordenadas por días detenida. Rojo: más de 90 días · Ámbar: más de 30 días. Usa los filtros del encabezado.');
+ if(W.crit)unitSheet(W.crit,'Unidades críticas (más de 30 días detenidas)',d.crit,[{h:'Eventos históricos',w:13,t:'int',k:r=>cnt[r[11]]||1}],`${d.crit.length} unidades · ${d.over90} con más de 90 días`);
+ if(W.rec)unitSheet(W.rec,'Reincidentes que siguen detenidas',d.rec,[{h:'Eventos históricos',w:13,t:'int',k:r=>cnt[r[11]]||1,b:1}],`${d.rec.length} unidades con 3 o más inmovilizaciones históricas`);
+ // ---- Entradas y salidas
+ if(W.es){const ws=W.es;xBanner(ws,`Entradas y salidas · ${CP.from} a ${CP.to}`,sub,5);
+  const cols=[{h:'Semana (inicio)',w:18,k:g=>g.k.slice(8,10)+' '+XMES[+g.k.slice(5,7)-1]+' '+g.k.slice(0,4),b:1,a:'center'},{h:'Entradas',w:13,t:'int',k:g=>g.e},{h:'Salidas',w:13,t:'int',k:g=>g.s},{h:'Balance (salidas − entradas)',w:20,t:'int',k:g=>g.s-g.e},{h:'Acumulado',w:14,t:'int',k:(g,j)=>d.wk.slice(0,j+1).reduce((s,x)=>s+x.s-x.e,0)}];
+  tEs=xTable(ws,5,cols,d.wk);if(tEs.n){ws.cell(`D6:D${tEs.r2}`,'lessThan','0',{fc:'9C0006',bg:'FFC7CE',b:1});ws.cell(`D6:D${tEs.r2}`,'greaterThan','0',{fc:'0B6B3A',bg:'C6EFCE',b:1});ws.dataBar(`B6:B${tEs.r2}`,'F6A5AD');ws.dataBar(`C6:C${tEs.r2}`,'8FDDB4');
+   xTotal(ws,tEs.r2+1,cols,6,tEs.r2,{1:{vals:d.wk.map(g=>g.e)},2:{vals:d.wk.map(g=>g.s)},3:{vals:d.wk.map(g=>g.s-g.e)}});
+   ws.chart({type:'col',title:'Entradas y salidas por semana',legend:'b',series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:tEs.r2,color:'E0364A'},{name:1,nameRow:5,valCol:3,catCol:1,r1:6,r2:tEs.r2,color:'1DA86A'}],gap:60},tEs.r2+4,1,700,320)}
+  ws.freeze(5,0)}
+ // ---- Tendencia
+ {const ws=W.tr,TR=buildTrend(d.rows,MIN,TODAY);xBanner(ws,'Tendencia histórica mensual',sub,8);ws.set(4,1,'* Mes en curso: datos parciales al corte.',{i:1,sz:9.5,fc:XC.mu});
+  const cols=[{h:'Mes',w:16,k:(g,j)=>xMes(g.m)+(g.m==TODAY.slice(0,7)?' *':''),b:1},{h:'Unidades con evento',w:18,t:'int',k:g=>g.n},{h:'Ingresos nuevos',w:16,t:'int',k:g=>g.ing},{h:'Días-unidad perdidos',w:20,t:'int',k:g=>g.d}];
+  const t=xTable(ws,5,cols,TR);if(t.n){ws.dataBar(`D6:D${t.r2}`,'F6A5AD');ws.dataBar(`C6:C${t.r2}`,'7FA8FF');
+   ws.chart({type:'line',title:'Días-unidad perdidos por mes',markers:false,series:[{name:1,nameRow:5,valCol:4,catCol:1,r1:6,r2:t.r2,color:'E0364A'}]},5,6,720,300);
+   ws.chart({type:'col',title:'Ingresos nuevos por mes',series:[{name:1,nameRow:5,valCol:3,catCol:1,r1:6,r2:t.r2,color:'2F6BFF'}],gap:30},22,6,720,300)}ws.freeze(5,1)}
+ // ---- Resumen
+ {const ws=W.res;ws.widths[1]=2.5;for(let c=2;c<=13;c++)ws.widths[c]=13;
+  xBanner(ws,'INMOVILIZADOS · REPORTE EJECUTIVO','',13);ws.set(2,1,'Mantenimiento de Activos Logísticos · Paquetexpress · '+sub,{sz:10.5,fc:'BFD0F5',bg:XC.navy,h:'left',ind:1});
+  const tile=(r,c,label,val,subt,color,nf)=>{const bgc={bg:XC.bg};ws.set(r,c,label,{b:1,sz:9,fc:XC.mu,...bgc,h:'left',ind:1,bd:{t:['thick',color]}}).fill(r,c+1,r,c+2,{...bgc,bd:{t:['thick',color]}}).merge(r,c,r,c+2).rowH(r,22);
+   ws.set(r+1,c,val,{b:1,sz:30,fc:color,...bgc,h:'left',ind:1,nf:nf||'#,##0'}).fill(r+1,c+1,r+1,c+2,bgc).merge(r+1,c,r+1,c+2).rowH(r+1,46);
+   ws.set(r+2,c,subt,{sz:9,fc:XC.mu,...bgc,h:'left',ind:1}).fill(r+2,c+1,r+2,c+2,bgc).merge(r+2,c,r+2,c+2).rowH(r+2,22)};
+  const gapC=(r)=>{[5,8,11].forEach(c=>{});};
+  tile(5,2,'DETENIDAS AL CORTE',H.length,FL&&d.scoped?`${pct(H.length,FL)} de ${FL.toLocaleString('en-US')} unidades`:'Unidades en el alcance',XC.rd);
+  tile(5,5,'UP TIME',up!=null?up/100:null,up!=null?(up>=98?'Meta 98% cumplida':`Meta 98% · faltan ${d.need!=null?d.need:Math.max(0,H.length-Math.floor(FL*0.02))} unidades`):'Sin flota de referencia',up!=null&&up>=98?XC.gn:XC.or,'0.0%');
+  tile(5,8,'FLOTA EN EL ALCANCE',FL||0,'Unidades operativas',XC.blue);
+  tile(5,11,'PROMEDIO DETENIDA',d.avg,'Días por unidad',XC.blue,'0.0');
+  tile(9,2,'MÁS DE 30 DÍAS',d.crit.length,`${pct(d.crit.length,H.length)} de las detenidas`,XC.or);
+  tile(9,5,'MÁS DE 90 DÍAS',d.over90,`${pct(d.over90,H.length)} de las detenidas`,XC.rd);
+  tile(9,8,'ENTRADAS DEL PERIODO',d.ent.length,`${CP.from} a ${CP.to} · previo: ${d.entP}`,XC.rd);
+  tile(9,11,'SALIDAS DEL PERIODO',d.sal.length,`Balance ${d.sal.length-d.ent.length>0?'+':''}${d.sal.length-d.ent.length} · previo: ${d.salP}`,XC.gn);
+  ws.rowH(8,8).rowH(12,8);
+  let r=14;
+  const sec=(t)=>{ws.set(r,2,t,{b:1,sz:13,fc:XC.navy,bd:{b:['medium',XC.or]}}).fill(r,3,r,13,{bd:{b:['medium',XC.or]}}).merge(r,2,r,13).rowH(r,26);r++};
+  if(W.reg&&tReg&&tReg.n||W.ant&&tAnt){sec('PANORAMA');
+   if(W.reg&&tReg&&tReg.n)ws.chart({type:'col',title:'Detenidas por región',series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:tReg.r2}],labels:true,colors:['2F6BFF'],gap:60,sheetRef:names.reg},r,2,590,290);
+   if(W.ant&&tAnt)ws.chart({type:'doughnut',title:'Antigüedad de las detenidas',legend:'r',sliceColors:['1DA86A','8BC34A','F0A500','FF7A59','E0364A'],series:[{name:1,nameRow:5,valCol:2,catCol:1,r1:6,r2:tAnt.r2}],sheetRef:names.ant},r,8,590,290);
+   r+=16}
+  const lines=(arr,color,pre)=>arr.forEach((t,i)=>{const L=Math.max(1,Math.ceil(t.length/118));ws.set(r,2,`${pre}${i+1}.  ${t}`,{sz:10.5,bg:XC.bg,wrap:1,h:'left',v:'center',ind:1,bd:{l:['thick',color]}}).fill(r,3,r,13,{bg:XC.bg}).merge(r,2,r,13).rowH(r,Math.max(24,17*L+8));r++;ws.rowH(r,5);r++});
+  if(has('hall')&&d.hall.length){sec('HALLAZGOS');lines(d.hall,XC.blue,'');r++}
+  if(has('hall')&&d.rc.length){sec('RECOMENDACIONES');lines(d.rc,XC.or,'');r++}
+  sec('ÍNDICE DE HOJAS');const desc={reg:'Detenidas, flota y Up Time por región',suc:'Ranking completo de sucursales',ft:'Fallas y tipos de unidad',ant:'Antigüedad de las detenidas',det:'Todas las unidades detenidas al corte',crit:'Más de 30 días detenidas',rec:'Reincidentes que siguen detenidas',es:'Entradas y salidas por semana',tr:'Evolución mensual histórica'};
+  Object.keys(W).filter(k=>k!='res').forEach(k=>{ws.set(r,2,names[k],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,names[k],'A1');ws.set(r,4,desc[k],{sz:10,fc:XC.mu});r++});
+  r++;ws.set(r,2,`Generado por el Portal Flota Inmovilizada · ${new Date().toLocaleString('es-MX')} · Datos al corte ${fmtEsLong(TODAY)}`,{i:1,sz:9,fc:XC.mu})}
+ return B}
+function xlsName(){return 'Reporte_Ejecutivo_Flota_Inmovilizada_'+TODAY+'.xlsx'}
+
 // ====== Menú lateral ejecutivo · Todo desplegable · Composer WhatsApp / Correo ======
 const IC={home:'M3 11l9-8 9 8M5 10v10h14V10',bars:'M4 20V10M10 20V4M16 20v-8M22 20H2',trend:'M3 17l6-6 4 4 8-8M15 7h6v6',cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',clock:'M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2',build:'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',map:'M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14',truck:'M2 6h11v10H2zM13 9h4l3 3v4h-7M6 17.5a1.5 1.5 0 100 .01M17 17.5a1.5 1.5 0 100 .01',heat:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',repeat:'M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3',bell:'M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 21h4',file:'M6 3h9l4 4v14H6zM9 12h7M9 16h7M9 8h3',table:'M3 4h18v16H3zM3 10h18M9 4v16',bulb:'M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z',search:'M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-5-5',monitor:'M3 4h18v12H3zM8 21h8M12 16v5',pres:'M3 4h18v11H3zM12 15v5M8 20h8M7 11l3-3 3 2 4-4',wa:'M4 20l1.5-4.5A8 8 0 1112 20a8 8 0 01-3.5-.8z',mail:'M3 5h18v14H3zM3 6l9 7 9-7',up:'M12 16V4M7 9l5-5 5 5M4 20h16',out:'M9 4H4v16h5M16 8l4 4-4 4M20 12H9',moon:'M20 14a8 8 0 01-10-10 8 8 0 1010 10z',menu:'M4 6h16M4 12h16M4 18h16',fold:'M15 6l-6 6 6 6'};
 const ico=(k,sz)=>`<svg viewBox="0 0 24 24" width="${sz||18}" height="${sz||18}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${IC[k]}"/></svg>`;
 const MENU=[['SITUACIÓN',[[0,'home','Portada','Radiografía general'],[1,'bars','Resumen ejecutivo','KPIs y situación global'],[4,'clock',null,'Unidades detenidas hoy']]],
 ['ANÁLISIS',[[2,'trend','Tendencia histórica','Evolución mes a mes'],[3,'cal','Entradas y salidas','Rango desde–hasta'],[5,'build','Sucursales','Ranking por sucursal'],[6,'map','Región y tipo','Zonas y tipos de unidad'],[7,'truck','Descripción % flota','Qué modelos fallan más'],[8,'heat','Mapa de calor','Falla × descripción']]],
 ['CONTROL',[[9,'repeat','Unidades recurrentes','Reincidencia por unidad'],[10,'bell','Alertas','Unidades a vigilar'],[11,'file','Kardex de correctivos','Historial por móvil'],[12,'table','Detalle','Todos los registros'],[13,'bulb','Hallazgos','Conclusiones automáticas']]]];
-const TOOLS=[['search','Ficha 360','Historial de un móvil','f360()'],['monitor','Modo junta','Pantalla completa automática','juntaOn()'],['pres','Presentación','Genera la presentación','presOpen()'],['wa','WhatsApp','Mensaje con filtros','waOpen()'],['mail','Correo','Análisis profundo con filtros','mailOpen()']];
+const TOOLS=[['search','Ficha 360','Historial de un móvil','f360()'],['monitor','Modo junta','Pantalla completa automática','juntaOn()'],['pres','Presentación','Genera la presentación','presOpen()'],['wa','WhatsApp','Mensaje con filtros','waOpen()'],['mail','Correo','Análisis profundo con filtros','mailOpen()'],['table','Excel ejecutivo','Reporte con gráficas y tablas','xlsOpen()']];
 const TSUB={0:'Panorama general de la flota inmovilizada',1:'Indicadores clave: histórico completo contra hoy',2:'Cómo se ha comportado la inmovilización mes a mes',3:'Unidades que entran y salen en el periodo que elijas',4:'Detalle de las unidades detenidas al corte',5:'Qué sucursales concentran más días detenidos',6:'Distribución por región y por tipo de unidad',7:'Qué descripciones de unidad pesan más en la flota',8:'Dónde se cruzan fallas y tipos de unidad',9:'Unidades que se han inmovilizado una y otra vez',10:'Unidades que requieren atención',11:'Historial de servicios por móvil',12:'Todos los registros con filtros',13:'Conclusiones y recomendaciones automáticas'};
 function badge(i,H){return i==4?`<em class="bd r">${H.length}</em>`:i==9?`<em class="bd a">${RECUR.length}</em>`:''}
 function renderSide(){const H=D.filter(r=>r[6]),FL=fleetSum(),up=FL?(FL-H.length)/FL*100:0;
@@ -993,7 +1242,7 @@ const _rn=render;render=function(){_rn();try{enh()}catch(e){console.warn(e)}};
 // ---------- Composer: WhatsApp / Correo con filtros ----------
 const CP={mode:'wa',reg:new Set(),suc:new Set(),tipo:new Set(),falla:new Set(),from:'',to:'',min:0,top:10,crit:25,secs:new Set(),subj:'',subjEd:false};
 const SEC=[['res','Resumen e indicadores'],['reg','Por región'],['suc','Por sucursal'],['falla','Por tipo de falla'],['tipo','Por tipo de unidad'],['ant','Antigüedad de las detenidas'],['es','Entradas y salidas del periodo'],['crit','Unidades críticas (más de 30 días)'],['rec','Reincidentes que siguen detenidas'],['hall','Hallazgos y recomendaciones']];
-const DEF={wa:['res','reg','suc','ant','es','hall'],mail:SEC.map(x=>x[0])};
+const DEF={wa:['res','reg','suc','ant','es','hall'],mail:SEC.map(x=>x[0]),xls:SEC.map(x=>x[0])};
 function cpInit(mode){const o=f[cur]||{};CP.mode=mode;CP.reg=new Set(o.reg||[]);CP.suc=new Set(o.suc||[]);CP.tipo=new Set(o.tipo||[]);CP.falla=new Set(o.falla||[]);
  CP.from=o.from&&o.from>='2000'?o.from:addDays(TODAY,-29);CP.to=o.to||TODAY;if(diffDays(CP.from,CP.to)>400){CP.from=addDays(TODAY,-29);CP.to=TODAY}
  CP.min=0;CP.secs=new Set(DEF[mode]);CP.subjEd=false}
@@ -1075,12 +1324,16 @@ function cpTg(k,v){v=cpD(v);CP[k].has(v)?CP[k].delete(v):CP[k].add(v);cpFilters(
 function cpSec(k,on){on?CP.secs.add(k):CP.secs.delete(k);cpUpd()}
 function cpMode(m){if(CP.mode==m)return;CP.mode=m;CP.secs=new Set(DEF[m]);cpShell();}
 function cpUpd(){const d=cpCalc();CP._d=d;el('cpN').textContent=`${d.H.length} unidades detenidas en el alcance · ${d.ent.length} entradas · ${d.sal.length} salidas`;
- if(CP.mode=='wa'){const t=waBuild(d);el('cpP').innerHTML=`<textarea id="cpTx" oninput="cpLen()" spellcheck="false">${esc(t)}</textarea><div class="cpLen" id="cpLen"></div>`;cpLen()}
+ if(CP.mode=='xls'){el('cpP').innerHTML=xlsPrev(d)}
+ else if(CP.mode=='wa'){const t=waBuild(d);el('cpP').innerHTML=`<textarea id="cpTx" oninput="cpLen()" spellcheck="false">${esc(t)}</textarea><div class="cpLen" id="cpLen"></div>`;cpLen()}
  else{el('cpP').innerHTML=`<div id="cpHtml" class="mailPrev">${mailBuild(d)}</div>`;if(!CP.subjEd&&el('cpSj'))el('cpSj').value=mailSubj()}}
 function cpLen(){const n=el('cpTx').value.length;el('cpLen').textContent=n+' caracteres'+(n>3500?' · es largo para el enlace directo: usa «Copiar mensaje» y pégalo en WhatsApp':'')}
-function cpShell(){const wa=CP.mode=='wa';
- fxOpen(wa?'💬 Mensaje de WhatsApp con filtros':'✉️ Correo informativo con análisis profundo',`<div class="cpTabs"><span class="chip ${wa?'on':''}" onclick="cpMode('wa')">💬 WhatsApp</span><span class="chip ${wa?'':'on'}" onclick="cpMode('mail')">✉️ Correo</span><span id="cpN" class="cpN"></span></div><div class="cpWrap"><div class="cpL" id="cpF"></div><div class="cpR">${wa?`<div class="cpRow" style="margin-bottom:6px"><span>Enviar a</span><input id="cpNum" placeholder="Número con lada (opcional) ej. 5215512345678" style="flex:1"></div>`:`<div class="cpRow"><span style="width:60px">Para</span><input id="cpTo" placeholder="correo1@empresa.com; correo2@empresa.com" style="flex:1"></div><div class="cpRow"><span style="width:60px">CC</span><input id="cpCc" placeholder="Opcional" style="flex:1"></div><div class="cpRow"><span style="width:60px">Asunto</span><input id="cpSj" oninput="CP.subjEd=true" style="flex:1"></div>`}<div id="cpP"></div><div class="cpAct">${wa?`<button class="pri" onclick="cpWaCopy()">📋 Copiar mensaje</button><button onclick="cpWaOpen()">Abrir WhatsApp</button>`:`<button class="pri" onclick="cpEml()">📨 Abrir en Outlook (.eml)</button><button onclick="cpMailCopy()">📋 Copiar correo con formato</button><button onclick="cpMailto()">✉️ Abrir en mi correo (texto)</button>`}</div><p class="cpHint">${wa?'Los cambios de filtros regeneran el texto. Puedes editar el mensaje antes de copiarlo.':'«Abrir en Outlook» descarga un borrador con formato completo: al abrirlo ya aparece como correo nuevo. Si prefieres, copia el correo y pégalo en Outlook o Gmail.'}</p></div></div>`,true);
+function cpShell(){const wa=CP.mode=='wa',xl=CP.mode=='xls';
+ fxOpen(xl?'📊 Excel ejecutivo con filtros':wa?'💬 Mensaje de WhatsApp con filtros':'✉️ Correo informativo con análisis profundo',`<div class="cpTabs"><span class="chip ${wa?'on':''}" onclick="cpMode('wa')">💬 WhatsApp</span><span class="chip ${!wa&&!xl?'on':''}" onclick="cpMode('mail')">✉️ Correo</span><span class="chip ${xl?'on':''}" onclick="cpMode('xls')">📊 Excel</span><span id="cpN" class="cpN"></span></div><div class="cpWrap"><div class="cpL" id="cpF"></div><div class="cpR">${xl?'':wa?`<div class="cpRow" style="margin-bottom:6px"><span>Enviar a</span><input id="cpNum" placeholder="Número con lada (opcional) ej. 5215512345678" style="flex:1"></div>`:`<div class="cpRow"><span style="width:60px">Para</span><input id="cpTo" placeholder="correo1@empresa.com; correo2@empresa.com" style="flex:1"></div><div class="cpRow"><span style="width:60px">CC</span><input id="cpCc" placeholder="Opcional" style="flex:1"></div><div class="cpRow"><span style="width:60px">Asunto</span><input id="cpSj" oninput="CP.subjEd=true" style="flex:1"></div>`}<div id="cpP"></div><div class="cpAct">${xl?`<button class="pri" onclick="xlsDownload()">📥 Descargar Excel ejecutivo</button>`:wa?`<button class="pri" onclick="cpWaCopy()">📋 Copiar mensaje</button><button onclick="cpWaOpen()">Abrir WhatsApp</button>`:`<button class="pri" onclick="cpEml()">📨 Abrir en Outlook (.eml)</button><button onclick="cpMailCopy()">📋 Copiar correo con formato</button><button onclick="cpMailto()">✉️ Abrir en mi correo (texto)</button>`}</div><p class="cpHint">${xl?'El archivo trae gráficas nativas de Excel (puedes editarlas), barras de datos y semáforos. Los filtros y las secciones marcadas definen qué hojas y qué datos incluye.':wa?'Los cambios de filtros regeneran el texto. Puedes editar el mensaje antes de copiarlo.':'«Abrir en Outlook» descarga un borrador con formato completo: al abrirlo ya aparece como correo nuevo. Si prefieres, copia el correo y pégalo en Outlook o Gmail.'}</p></div></div>`,true);
  el('ov').classList.add('xl');cpFilters();cpUpd()}
+function xlsPrev(d){const S=CP.secs,l=[['Resumen','Indicadores, gráficas, hallazgos y recomendaciones',1],['Regiones',d.reg.length+' regiones · gráfica',S.has('reg')],['Sucursales',d.suc.length+' sucursales · Top 10',S.has('suc')],['Fallas y tipos',d.falla.length+' fallas · '+d.tipo.length+' tipos',S.has('falla')||S.has('tipo')],['Antigüedad','Rangos de días detenida',S.has('ant')],['Detenidas hoy',d.H.length+' unidades con semáforo',1],['Críticas +30 días',d.crit.length+' unidades',S.has('crit')],['Reincidentes',d.rec.length+' unidades',S.has('rec')],['Entradas y salidas',d.wk.length+' semanas · gráfica',S.has('es')],['Tendencia mensual','Evolución histórica',1]];return `<div class="xlP"><div class="xlH">📊 El archivo incluirá ${l.filter(x=>x[2]).length} hojas</div>${l.map(([a,b,on])=>`<div class="xlR ${on?'':'off'}"><i>${on?'✓':'–'}</i><b>${a}</b><span>${b}</span></div>`).join('')}</div>`}
+function xlsOpen(){cpInit('xls');cpShell()}
+function xlsDownload(){try{CP._d=cpCalc();XW.save(xlsReport(CP._d,cpScope(),CP.secs),xlsName());toast('Excel generado. Revisa tu carpeta de descargas')}catch(e){console.error(e);toast('No pude generar el Excel: '+e.message)}}
 function waOpen(){cpInit('wa');cpShell()}function mailOpen(){cpInit('mail');cpShell()}
 const _cm2=closeModal;closeModal=function(){_cm2();el('ov').classList.remove('xl')};
 function cpWaCopy(){cpTxt(el('cpTx').value,'Mensaje copiado. Pégalo en WhatsApp')}
