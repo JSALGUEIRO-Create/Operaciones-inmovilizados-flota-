@@ -1060,7 +1060,7 @@ const save=(book,name)=>{const bl=book.blob(),a=document.createElement('a');a.hr
 return {Book,col,ref,serial,save,zip,simple}})();
 
 // ====== Briefing de bienvenida (centro de mando) + conteo animado ======
-const WBN={Jruelas:'Jesús',Dvelarde:'Daniel',Azazueta:'Alejandro',Eaguirre:'Edgardo',Gacosta:'Gilberto',Scorona:'Sergio',Jsalgueiro:'José Luis'};
+const WBN={Jruelas:'Jesús',Dvelarde:'Daniel',Azazueta:'Alejandro',Eaguirre:'Edgardo',Gacosta:'Gilberto',Scorona:'Sergio',Jsalgueiro:'José Luis',Lidertallergdl:'Cristian',Lidertallermex:'Asbel',Lidertallermty:'Valentín',Eleon:'Estephania'};
 function wbCount(node,to,dec,suf,dur,delay){const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;if(reduce){node.textContent=to.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+(suf||'');return}
  const t0=performance.now()+(delay||0);(function f(t){const p=Math.max(0,Math.min(1,(t-t0)/dur)),e=1-Math.pow(1-p,3);node.textContent=(to*e).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+(suf||'');if(p<1)requestAnimationFrame(f)})(performance.now())}
 function wbData(){const wd=r=>r[13]!=null?r[13]:diffDays(r[7],TODAY)+1;const H=D.filter(r=>r[6]),FL=fleetSum(),up=FL?(FL-H.length)/FL*100:0,need=Math.max(0,H.length-Math.floor(FL*0.02));
@@ -1404,7 +1404,7 @@ document.addEventListener('click',e=>{const m=el('m');if(!m||!m.contains(e.targe
 
 const _rnX2=render;render=function(){_rnX2();try{xDecorate()}catch(e){}};
 // ====== Acceso ======
-const USERS={Dvelarde:{p:'Velarde2026',role:'admin'},Eaguirre:{p:'Aguirre2026',role:'consulta'},Jruelas:{p:'Ruelas2026',role:'consulta'},Operaciones:{p:'Operaciones2026',role:'consulta'},Azazueta:{p:'Zazueta2026',role:'consulta'}};
+const USERS={Dvelarde:{p:'Velarde2026',role:'admin'},Eaguirre:{p:'Aguirre2026',role:'consulta'},Jruelas:{p:'Ruelas2026',role:'consulta'},Operaciones:{p:'Operaciones2026',role:'consulta'},Azazueta:{p:'Zazueta2026',role:'consulta'},Lidertallergdl:{p:'tallergdl2026',role:'consulta'},Lidertallermex:{p:'tallermex2026',role:'consulta'},Lidertallermty:{p:'tallermty2026',role:'consulta'},Eleon:{p:'Leon2026',role:'consulta'}};
 function showApp(user,role){ME=user;
   document.getElementById('loginWrap').classList.add('hide');
   document.getElementById('app').classList.remove('hide');
