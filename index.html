@@ -185,6 +185,24 @@ table.gtb td:first-child,table.gtb th:first-child{position:sticky;left:0;backgro
 svg .ck{cursor:pointer}svg rect.ck:hover,svg circle.ck:hover{filter:brightness(1.25)}
 
 .gnar p{margin:0 0 9px}.gnar p:last-child{margin:0}
+
+.gfil{padding:0;overflow:hidden;border:1px solid var(--pr);box-shadow:0 0 0 1px rgba(79,140,255,.15),0 8px 24px rgba(10,63,214,.12)}
+.gfh{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(90deg,rgba(79,140,255,.22),rgba(79,140,255,.05));border-bottom:1px solid var(--bd)}
+.gfh b{font-size:13px;letter-spacing:.12em;color:var(--pr2);display:block}.gfh small{font-size:11.5px;color:var(--mu)}
+.gfi{width:30px;height:30px;border-radius:9px;background:var(--pr);color:#fff;display:grid;place-items:center;font-size:17px}
+.gfc{margin-left:auto;font-size:11.5px;padding:3px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--bd);color:var(--mu)}
+.gfx{background:rgba(255,93,108,.15);color:var(--rd);border:1px solid var(--rd);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer}
+.gfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0}
+.gfb{padding:12px 16px;border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}.gfb h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx)}
+.gfd{display:flex;gap:10px;flex-wrap:wrap}.gsl{display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}.gsl small{font-size:10.5px;color:var(--mu);font-weight:600}
+.gsw{position:relative;display:block}.gsw:after{content:'▾';position:absolute;right:11px;top:50%;transform:translateY(-52%);color:var(--pr2);pointer-events:none;font-size:14px}
+.gsw select{appearance:none;-webkit-appearance:none;width:100%;max-width:none;padding:9px 30px 9px 11px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg2);color:var(--tx);font-size:13.5px;font-weight:600;cursor:pointer}
+.gsw select:hover,.gsw select:focus{border-color:var(--pr);outline:0;box-shadow:0 0 0 3px rgba(79,140,255,.2)}
+.gsl.on select{border-color:var(--pr);background:rgba(79,140,255,.14);color:var(--pr2)}
+.gfq{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.gseg{margin-top:0}.gfq .chip{padding:6px 12px;font-size:12.5px}
+.gfn{padding:7px 16px;font-size:12px;color:var(--mu);background:var(--bg2)}.gfn b{color:var(--tx)}
+@media(max-width:640px){.gfb{border-right:0}.gfh small{display:none}}
+.gsl{min-width:150px}.gsw select{font-size:13px;padding:9px 24px 9px 10px;text-overflow:ellipsis}.gsw:after{right:8px}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1383,11 +1401,13 @@ function gFilters(){
   const tk=gTpKey(f.tp),tc=[['','Todo el gasto'],['0','Preventivo'],['1','Correctivo'],['0,1','Preventivo + correctivo'],['2','Sin OT']];
   const regs=[...new Set(X.R0.map(r=>r.rg))].sort(),uts=[...new Set(X.R0.map(r=>r.ut))].sort();
   const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut;
-  return `<div class="card gfil"><div class="gfr"><b>Periodo</b><span>Desde</span><select onchange="gSet('from',this.value)">${opt(f.from)}</select><span>hasta</span><select onchange="gSet('to',this.value)">${opt(f.to)}</select>
-  <span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div>
-  <div class="gfr"><b>Tipo de gasto</b>${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div>
-  <div class="gfr"><b>Región</b><select onchange="gSet('rg',this.value)"><option value="">Todas</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}</select><b style="margin-left:10px">Tipo de unidad</b><select onchange="gSet('ut',this.value)"><option value="">Todos</option>${uts.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</select>${act?'<span class="chip on" onclick="gClean()">Quitar filtros ✕</span>':''}
-  <span class="note" style="margin-left:auto">${fmt(X.R.length)} de ${fmt(X.R0.length)} líneas · ${gm(X.R.reduce((a,r)=>a+r.m,0))}</span></div></div>`}
+  const nAct=(f.from>0||f.to<N0-1?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0);
+  const sel=(lbl,onch,body,on)=>`<label class="gsl${on?' on':''}"><small>${lbl}</small><span class="gsw"><select onchange="${onch}">${body}</select></span></label>`;
+  return `<div class="card gfil"><div class="gfh"><span class="gfi">⚙</span><div><b>FILTROS</b><small>Elige qué quieres ver: todas las pestañas se ajustan a tu selección</small></div><span class="gfc">${nAct?nAct+' activo'+(nAct>1?'s':''):'sin filtros'}</span>${act?'<button class="gfx" onclick="gClean()">✕ Quitar filtros</button>':''}</div>
+  <div class="gfg"><div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>
+  <div class="gfb"><h4>💲 Tipo de gasto</h4><div class="gfq gseg">${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div></div>
+  <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${uts.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.ut)}</div></div></div>
+  <div class="gfn">Mostrando <b>${fmt(X.R.length)}</b> de ${fmt(X.R0.length)} líneas · <b>${gm(X.R.reduce((a,r)=>a+r.m,0))}</b></div></div>`}
 function gFiltTxt(){const X=GX,f=GS.f,N0=X.per0.length,a=[];a.push(X.pl(0)+(X.NP>1?' a '+X.pl(X.NP-1):''));const tk=gTpKey(f.tp);if(tk)a.push({'0':'Preventivo','1':'Correctivo','0,1':'Preventivo + correctivo','2':'Sin OT'}[tk]||'');if(f.rg)a.push('Región '+f.rg);if(f.ut)a.push(f.ut);return a.join(' · ')}
 // ---------- utilidades ----------
 const gm=n=>{const a=Math.abs(n),s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(a>=1e7?1:2)+'M':a>=1e3?s+'$'+Math.round(a/1e3).toLocaleString('es-MX')+'k':s+'$'+Math.round(a)};
