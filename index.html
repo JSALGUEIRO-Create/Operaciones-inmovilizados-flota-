@@ -172,6 +172,11 @@ table.gtb td:first-child,table.gtb th:first-child{position:sticky;left:0;backgro
 .ck{cursor:pointer}tr.ck:hover td{background:rgba(79,140,255,.1)}.br.ck:hover{background:rgba(79,140,255,.08);border-radius:6px}
 .fbar select{padding:5px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:12.5px}
 .story a,ul.h a{color:var(--pr2);font-weight:600}
+.gfil{margin-bottom:12px;padding:10px 14px}.gfr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}.gfr b{font-size:11px;color:var(--mu);margin-right:2px}.gfr span:not(.chip):not(.note){font-size:12px;color:var(--mu)}
+.gfr select{padding:5px 8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--tx);font-size:12.5px;max-width:210px}
+.gsb{display:grid;grid-template-columns:minmax(120px,210px) 1fr minmax(180px,auto);gap:8px;align-items:center;margin:5px 0;font-size:12px;padding:2px 4px;border-radius:6px}.gsb:hover{background:rgba(79,140,255,.08)}
+.gsbar{display:flex;height:18px;border-radius:5px;overflow:hidden;min-width:4px}.gsbar i{display:block;height:100%}.gsb em{font-style:normal;white-space:nowrap;color:var(--mu)}
+@media(max-width:700px){.gsb{grid-template-columns:1fr}.gsb em{white-space:normal}}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1228,7 +1233,7 @@ const GT=14;
 let G=null;try{const e=document.getElementById('d-G');if(e)G=JSON.parse(e.textContent)}catch(e){}
 const GMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],GMESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const GTP=['Preventiva','Correctiva','Sin OT'],GTPC=['var(--gn)','var(--rd)','var(--mu)'];
-const GS={t:0,a:null,b:null,dim:'cc',fl:{},sort:{},q:'',all:{},dq:{per:'',cc:'',cta:'',prov:'',tp:''}};
+const GS={t:0,a:null,b:null,dim:'cc',fl:{},sort:{},q:'',all:{},dq:{per:'',cc:'',cta:'',prov:'',tp:''},f:{from:null,to:null,tp:null,rg:'',ut:''},utSel:''};
 let GX=null;
 // ---------- lectura del Excel (hojas Detalle + Resumen CC x Mes) ----------
 function gParse(wb){
@@ -1263,27 +1268,68 @@ function gBuild(data,H,gen,py){
   return {gen:gen.replace(/^Generado el /,'').replace(/ desde .*$/,''),genISO,per:order.map(x=>x[0]),cc:d.cc.a,cta:d.cta.a,nodo:d.nodo.a,prov:d.prov.a,sub:d.sub.a,un:d.un.a,oc:d.oc.a,ot:d.ot.a,rows,py};
 }
 // ---------- índice en memoria ----------
+function gCat(d){d=(d||'').toUpperCase();
+  if(/MONTAC/.test(d))return 'Montacargas';if(/MOTOCIC/.test(d))return 'Motocicletas';
+  if(/RABON/.test(d))return 'Rabón';if(/FL ?-?360/.test(d))return 'Camión Freightliner FL-360';
+  if(/S500|1018|1524/.test(d))return 'Hino S500 (10–15 t)';if(/HINO|ISUZU|ELF/.test(d))return 'Camión ligero Hino (4.5–7 t)';
+  if(/TRANSPORTER|SPRINTER|CADDY|HIACE|TRANSIT|PROMASTER|PEUGEOT|EXPERT/.test(d))return 'Vans y furgones';
+  if(/AUTOMOVIL|YARIS|COROLLA|SELTOS|SPORTAGE|CAMIONETA|RIO|VENTO|FORTE|K3|ELANTRA|MARCH|CITY|FIGO|SAVEIRO/.test(d))return 'Autos y camionetas';
+  return 'Sin clasificar'}
 function gInit(){
   if(!G||!G.rows||!G.rows.length){GX=null;return}
-  const X={NP:G.per.length,R:[]};
+  const X={R0:[],per0:G.per.slice(),R:[],NP:0,per:[]};
   X.CCN={};G.cc.forEach(c=>X.CCN[c[0]]=c[1]);X.CTN=G.cta.map(c=>c[1]);X.NDN=G.nodo.map(c=>c[1]);
   X.reg=cc=>{const f=typeof F=='object'&&F?F[cc.slice(0,3)]:null;return f?f[1]:(cc=='MTRIZ'?'Corporativo':'Otras')};
   X.sys=n=>{n=n||'';if(/UREA/.test(n))return 'Urea';if(/ACCESORIOS|ROTULACION|HERRAMIENTAS|IMPULSORA|SINIESTRO/.test(n))return 'Accesorios y otros';if(/LAVADO/.test(n))return 'Lavado';
-    const s=/FRENO/.test(n)?'Frenos':/LLANTA/.test(n)?'Llantas':/CARROCER/.test(n)?'Carrocería':/ELECT/.test(n)?'Sistema eléctrico':/CLUTCH/.test(n)?'Clutch':/SUSPENS/.test(n)?'Suspensión':/TRANSM|DIFERENCIAL/.test(n)?'Transmisión y diferencial':/MOTOR|GAS/.test(n)?'Motor':'Otros';
-    return s};
+    return /FRENO/.test(n)?'Frenos':/LLANTA/.test(n)?'Llantas':/CARROCER/.test(n)?'Carrocería':/ELECT/.test(n)?'Sistema eléctrico':/CLUTCH/.test(n)?'Clutch':/SUSPENS/.test(n)?'Suspensión':/TRANSM|DIFERENCIAL/.test(n)?'Transmisión y diferencial':/MOTOR|GAS/.test(n)?'Motor':'Otros'};
   X.eq=n=>/MONTAC/.test(n||'')?'Montacargas':'Móviles';
-  G.rows.forEach(r=>X.R.push({p:r[0],cc:G.cc[r[1]][0],ccN:G.cc[r[1]][1],cta:r[2],ctn:X.CTN[r[2]],nd:r[3],ndn:X.NDN[r[3]],pv:G.prov[r[4]],oc:r[5],ot:r[6],tp:r[7],sb:r[8]<0?'Sin subtipo':G.sub[r[8]],un:r[9]<0?'':G.un[r[9]][0],und:r[9]<0?'':G.un[r[9]][1],fa:r[10],m:r[11]}));
-  X.R.forEach(r=>{r.rg=X.reg(r.cc);r.sy=X.sys(r.ctn);r.eq=X.eq(r.ctn);r.tpn=GTP[r.tp]});
-  // mes parcial: el corte del ERP cae antes del último día del mes
-  const last=G.per[X.NP-1];X.partial=false;
-  if(G.genISO&&G.genISO.slice(0,7)==last){const y=+last.slice(0,4),m=+last.slice(5);const dm=new Date(y,m,0).getDate();X.partial=+G.genISO.slice(8)<dm;X.genDay=+G.genISO.slice(8);X.dm=dm}
-  X.lastFull=X.partial?X.NP-2:X.NP-1;
-  X.pl=p=>{const s=G.per[p];return GMES[+s.slice(5)-1]+' '+s.slice(2,4)};
-  X.pls=p=>GMES[+G.per[p].slice(5)-1];
-  X.pln=p=>{const s=G.per[p];return GMESL[+s.slice(5)-1]};
-  GX=X;
-  if(GS.a==null||GS.a>=X.NP){GS.b=Math.max(0,X.lastFull);GS.a=Math.max(0,GS.b-1)}
+  const DM={};try{D.forEach(r=>{const k=String(r[11]||'').trim();if(k&&!DM[k])DM[k]=r[3]})}catch(e){}
+  G.rows.forEach(r=>X.R0.push({p0:r[0],p:r[0],cc:G.cc[r[1]][0],ccN:G.cc[r[1]][1],cta:r[2],ctn:X.CTN[r[2]],nd:r[3],ndn:X.NDN[r[3]],pv:G.prov[r[4]],oc:r[5],ot:r[6],tp:r[7],sb:r[8]<0?'Sin subtipo':G.sub[r[8]],un:r[9]<0?'':G.un[r[9]][0],und:r[9]<0?'':G.un[r[9]][1],fa:r[10],m:r[11]}));
+  X.R0.forEach(r=>{r.rg=X.reg(r.cc);r.sy=X.sys(r.ctn);r.eq=X.eq(r.ctn);r.tpn=GTP[r.tp];
+    r.md=String(r.und||DM[r.un]||'').toUpperCase().replace(/\s+/g,' ').trim()||'SIN DESCRIPCIÓN';r.ut=r.md=='SIN DESCRIPCIÓN'?'Sin identificar':gCat(r.md)});
+  // modelo del ERP → descripción del inventario de flota (por los móviles que coinciden)
+  const cnt={};try{X.R0.forEach(r=>{if(!r.un)return;const d=DM[r.un];if(!d)return;const k=r.md+'|'+d;cnt[k]=(cnt[k]||0)+1})}catch(e){}
+  X.mdMap={};const best={};Object.keys(cnt).forEach(k=>{const [m,d]=k.split('|');if(!best[m]||cnt[k]>best[m][0])best[m]=[cnt[k],d]});Object.keys(best).forEach(m=>X.mdMap[m]=best[m][1]);
+  X.fleet=md=>{const d=X.mdMap[md];return d&&typeof FD=='object'&&FD[d]?FD[d]:0};
+  const N0=X.per0.length,last=X.per0[N0-1];X.partial0=false;
+  if(G.genISO&&G.genISO.slice(0,7)==last){const y=+last.slice(0,4),m=+last.slice(5);const dm=new Date(y,m,0).getDate();X.partial0=+G.genISO.slice(8)<dm;X.genDay=+G.genISO.slice(8);X.dm=dm}
+  GX=X;gApply();
 }
+// aplica los filtros globales (periodo, tipo, región, tipo de unidad) y reindexa los meses
+function gApply(){
+  const X=GX,f=GS.f,N0=X.per0.length;
+  if(f.from==null||f.from>=N0)f.from=0;if(f.to==null||f.to>=N0)f.to=N0-1;if(f.to<f.from)f.to=f.from;
+  X.per=X.per0.slice(f.from,f.to+1);X.NP=X.per.length;
+  X.R=X.R0.filter(r=>r.p0>=f.from&&r.p0<=f.to&&(!f.tp||f.tp.has(r.tp))&&(!f.rg||r.rg==f.rg)&&(!f.ut||r.ut==f.ut));
+  X.R.forEach(r=>r.p=r.p0-f.from);
+  X.partial=X.partial0&&f.to==N0-1;X.lastFull=Math.max(0,X.partial?X.NP-2:X.NP-1);
+  X.pl=p=>{const s=X.per[p];return s?GMES[+s.slice(5)-1]+' '+s.slice(2,4):''};
+  X.pls=p=>X.per[p]?GMES[+X.per[p].slice(5)-1]:'';
+  X.pln=p=>{const s=X.per[p];return s?GMESL[+s.slice(5)-1]:''};
+  X.pln0=()=>GMESL[+X.per0[X.per0.length-1].slice(5)-1];
+  GS.b=X.lastFull;GS.a=Math.max(0,GS.b-1);GS.all={};
+}
+function gSet(k,v){const f=GS.f;
+  if(k=='from'){f.from=+v;if(f.to<f.from)f.to=f.from}else if(k=='to'){f.to=+v;if(f.to<f.from)f.from=f.to}
+  else if(k=='tp'){f.tp=v==''?null:new Set(v.split(',').map(Number))}
+  else f[k]=v;
+  gApply();render()}
+function gQuick(n){const f=GS.f,X=GX,N0=X.per0.length,lf=Math.max(0,X.partial0?N0-2:N0-1);
+  if(n==0){f.from=0;f.to=N0-1}else{f.to=lf;f.from=Math.max(0,lf-n+1)}gApply();render()}
+function gClean(){GS.f={from:null,to:null,tp:null,rg:'',ut:''};gApply();render()}
+const gTpKey=s=>!s?'':[...s].sort().join(',');
+function gFilters(){
+  const X=GX,f=GS.f,N0=X.per0.length,pl0=i=>GMES[+X.per0[i].slice(5)-1]+' '+X.per0[i].slice(2,4);
+  const opt=sel=>X.per0.map((p,i)=>`<option value="${i}" ${i==sel?'selected':''}>${pl0(i)}${X.partial0&&i==N0-1?' (parcial)':''}</option>`).join('');
+  const tk=gTpKey(f.tp),tc=[['','Todo el gasto'],['0','Preventivo'],['1','Correctivo'],['0,1','Preventivo + correctivo'],['2','Sin OT']];
+  const regs=[...new Set(X.R0.map(r=>r.rg))].sort(),uts=[...new Set(X.R0.map(r=>r.ut))].sort();
+  const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut;
+  return `<div class="card gfil"><div class="gfr"><b>Periodo</b><span>Desde</span><select onchange="gSet('from',this.value)">${opt(f.from)}</select><span>hasta</span><select onchange="gSet('to',this.value)">${opt(f.to)}</select>
+  <span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div>
+  <div class="gfr"><b>Tipo de gasto</b>${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div>
+  <div class="gfr"><b>Región</b><select onchange="gSet('rg',this.value)"><option value="">Todas</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}</select><b style="margin-left:10px">Tipo de unidad</b><select onchange="gSet('ut',this.value)"><option value="">Todos</option>${uts.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</select>${act?'<span class="chip on" onclick="gClean()">Quitar filtros ✕</span>':''}
+  <span class="note" style="margin-left:auto">${fmt(X.R.length)} de ${fmt(X.R0.length)} líneas · ${gm(X.R.reduce((a,r)=>a+r.m,0))}</span></div></div>`}
+function gFiltTxt(){const X=GX,f=GS.f,N0=X.per0.length,a=[];a.push(X.pl(0)+(X.NP>1?' a '+X.pl(X.NP-1):''));const tk=gTpKey(f.tp);if(tk)a.push({'0':'Preventivo','1':'Correctivo','0,1':'Preventivo + correctivo','2':'Sin OT'}[tk]||'');if(f.rg)a.push('Región '+f.rg);if(f.ut)a.push(f.ut);return a.join(' · ')}
 // ---------- utilidades ----------
 const gm=n=>{const a=Math.abs(n),s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(a>=1e7?1:2)+'M':a>=1e3?s+'$'+Math.round(a/1e3).toLocaleString('es-MX')+'k':s+'$'+Math.round(a)};
 const gf=n=>(n<0?'-$':'$')+Math.round(Math.abs(n)).toLocaleString('es-MX');
@@ -1294,9 +1340,9 @@ const gq=s=>String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');
 const ge=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function gagg(rs,kf){const o=new Map(),NP=GX.NP;for(const r of rs){const k=kf(r);let a=o.get(k);if(!a){a={k,m:0,l:0,ot:new Set(),oc:new Set(),mm:new Array(NP).fill(0),mo:Array.from({length:NP},()=>new Set()),mc:new Array(NP).fill(0),tp:[0,0,0]};o.set(k,a)}a.m+=r.m;a.l++;if(r.ot>=0){a.ot.add(r.ot);a.mo[r.p].add(r.ot)}if(r.oc>=0)a.oc.add(r.oc);a.mm[r.p]+=r.m;if(r.tp<2)a.mc[r.p]+=r.m;a.tp[r.tp]+=r.m}return [...o.values()]}
 function gtot(rs){const a=gagg(rs,()=>1)[0];return a||{m:0,l:0,ot:new Set(),oc:new Set(),mm:new Array(GX.NP).fill(0),mo:Array.from({length:GX.NP},()=>new Set()),mc:new Array(GX.NP).fill(0),tp:[0,0,0]}}
-const gfl=()=>{const f=GS.fl;return GX.R.filter(r=>(!f.cc||r.cc==f.cc)&&(!f.rg||r.rg==f.rg)&&(!f.ctn||r.ctn==f.ctn)&&(f.tp==null||f.tp===''||r.tp==f.tp)&&(!f.pv||r.pv==f.pv)&&(!f.un||r.un==f.un)&&(!f.sb||r.sb==f.sb)&&(!f.sy||r.sy==f.sy)&&(!f.ndn||r.ndn==f.ndn))};
-const GDIM={cc:['Sucursal',r=>r.cc,k=>(GX.CCN[k]||k)+' · '+k,'cc'],rg:['Región',r=>r.rg,k=>k,'rg'],sy:['Sistema',r=>r.sy,k=>k,'sy'],ctn:['Cuenta',r=>r.ctn,k=>gTitle(k),'ctn'],tp:['Preventivo / Correctivo',r=>r.tp,k=>GTP[k],'tp'],pv:['Proveedor',r=>r.pv,k=>k,'pv'],un:['Unidad',r=>r.un||'(sin unidad)',k=>k,'un'],sb:['Subtipo de OT',r=>r.sb,k=>k,'sb'],ndn:['Entidad',r=>r.ndn,k=>k,'ndn']};
-const GFN={cc:'Sucursal',rg:'Región',sy:'Sistema',ctn:'Cuenta',tp:'Tipo',pv:'Proveedor',un:'Unidad',sb:'Subtipo',ndn:'Entidad'};
+const gfl=()=>{const f=GS.fl;return GX.R.filter(r=>(!f.cc||r.cc==f.cc)&&(!f.rg||r.rg==f.rg)&&(!f.ctn||r.ctn==f.ctn)&&(f.tp==null||f.tp===''||r.tp==f.tp)&&(!f.pv||r.pv==f.pv)&&(!f.un||r.un==f.un)&&(!f.sb||r.sb==f.sb)&&(!f.sy||r.sy==f.sy)&&(!f.ndn||r.ndn==f.ndn)&&(!f.ut||r.ut==f.ut)&&(!f.md||r.md==f.md))};
+const GDIM={cc:['Sucursal',r=>r.cc,k=>(GX.CCN[k]||k)+' · '+k,'cc'],rg:['Región',r=>r.rg,k=>k,'rg'],sy:['Sistema',r=>r.sy,k=>k,'sy'],ctn:['Cuenta',r=>r.ctn,k=>gTitle(k),'ctn'],tp:['Preventivo / Correctivo',r=>r.tp,k=>GTP[k],'tp'],pv:['Proveedor',r=>r.pv,k=>k,'pv'],un:['Unidad',r=>r.un||'(sin unidad)',k=>k,'un'],sb:['Subtipo de OT',r=>r.sb,k=>k,'sb'],ndn:['Entidad',r=>r.ndn,k=>k,'ndn'],ut:['Tipo de unidad',r=>r.ut,k=>k,'ut'],md:['Modelo',r=>r.md,k=>k,'md']};
+const GFN={cc:'Sucursal',rg:'Región',sy:'Sistema',ctn:'Cuenta',tp:'Tipo',pv:'Proveedor',un:'Unidad',sb:'Subtipo',ndn:'Entidad',ut:'Tipo de unidad',md:'Modelo'};
 const gSpark=(v,w,h,c)=>{const mx=Math.max(...v,1),mn=0,n=v.length;if(n<2)return '';const pts=v.map((x,i)=>(2+i*(w-4)/(n-1)).toFixed(1)+','+(h-2-(h-4)*(x-mn)/(mx-mn||1)).toFixed(1)).join(' ');return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="vertical-align:middle"><polyline fill="none" stroke="${c||'var(--pr2)'}" stroke-width="1.8" points="${pts}"/><circle cx="${pts.split(' ').pop().split(',')[0]}" cy="${pts.split(' ').pop().split(',')[1]}" r="2.4" fill="${c||'var(--pr2)'}"/></svg>`};
 const gDelta=(a,b)=>a?((b-a)/a*100):null;
 const gDl=(a,b,inv)=>{const d=gDelta(a,b);if(d==null)return '<span class="nd">–</span>';const up=d>0.05,c=up?'var(--rd)':d<-0.05?'var(--gn)':'var(--mu)';return `<span style="color:${c};font-weight:700">${up?'▲':d<-0.05?'▼':'●'} ${gp(d)}</span>`};
@@ -1304,15 +1350,17 @@ function gHeat(v,ref){if(!ref||!v)return '';const r=v/ref;if(r>=1.3)return 'back
 function gSortRows(arr,key,def){const s=GS.sort[key]||def;const f=s[0],d=s[1];return arr.sort((x,y)=>{const a=f(x),b=f(y);return (typeof a=='string'?a.localeCompare(b):a-b)*d})}
 function gSortBy(key,i,def){const s=GS.sort[key];GS.sort[key]=[i,s&&s[0]===i?-s[1]:def||-1];render()}
 // ---------- renderizado principal ----------
-const GSUB=[['res','Resumen','coin'],['why','¿Por qué cambió?','trend'],['cc','Sucursales','build'],['cta','Cuentas','file'],['pc','Preventivo vs correctivo','wrench'],['pv','Proveedores','truck'],['un','Unidades','truck'],['fl','Cruce con flota','map'],['det','Detalle','table']];
+const GSUB=[['res','Resumen','coin'],['why','¿Por qué cambió?','trend'],['cc','Sucursales','build'],['cta','Cuentas','file'],['pc','Preventivo vs correctivo','wrench'],['ut','Tipo de unidad','truck'],['pv','Proveedores','truck'],['un','Unidades','truck'],['fl','Cruce con flota','map'],['det','Detalle','table']];
 function gTabs(){return `<div class="gtabs">${GSUB.map((x,i)=>`<button class="${GS.t==i?'on':''}" onclick="GS.t=${i};render();scrollTo(0,0)">${x[1]}</button>`).join('')}</div>`}
 function gEmpty(){return `<h2>Gastos de mantenimiento</h2><div class="card story">Aún no hay información de gastos cargada. El administrador puede subir el Excel <b>Gasto_Mtto_Sucursales</b> desde <b>📤 Cargar archivos</b> y este bloque se arma solo: resumen, variaciones, sucursales, cuentas, preventivo vs correctivo, proveedores, unidades y cruce con la flota.</div>`}
 function gRender(){
   const m=document.getElementById('m');if(!m)return;
   if(!GX){m.innerHTML=gEmpty();return}
-  const fn=[gRes,gWhy,gCC,gCta,gPC,gPv,gUn,gFl,gDet][GS.t];
+  const head=`<div class="gHead"><div><h2>💰 Gastos de mantenimiento · Sucursales ${GX.per0[0].slice(0,4)}</h2><p class="sub">Facturado neto sin IVA, por fecha contable · Oracle Fusion · actualizado al ${ge(G.gen)}${GX.partial0?` · <b style="color:var(--ac)">${GX.pln0()} es parcial (corte día ${GX.genDay} de ${GX.dm})</b>`:''}</p></div><button class="gxl" onclick="gXls()">📊 Excel ejecutivo de gastos</button></div>${gTabs()}${gFilters()}`;
+  if(!GX.R.length){m.innerHTML=head+'<div class="card story">No hay gasto con esos filtros. Prueba ampliando el periodo o quitando algún filtro.</div>';return}
+  const fn=[gRes,gWhy,gCC,gCta,gPC,gUt,gPv,gUn,gFl,gDet][GS.t];
   let o='';try{o=fn()}catch(e){console.error(e);o='<div class="card">Error al armar esta vista: '+ge(e.message)+'</div>'}
-  m.innerHTML=`<div class="gHead"><div><h2>💰 Gastos de mantenimiento · Sucursales ${G.per[0].slice(0,4)}</h2><p class="sub">Facturado neto sin IVA, por fecha contable · Oracle Fusion · actualizado al ${ge(G.gen)}${GX.partial?` · <b style="color:var(--ac)">${GX.pln(GX.NP-1)} es parcial (corte día ${GX.genDay} de ${GX.dm})</b>`:''}</p></div><button class="gxl" onclick="gXls()">📊 Excel ejecutivo de gastos</button></div>${gTabs()}${o}`;
+  m.innerHTML=head+o;
 }
 const _rG=render;render=function(){if(cur===GT){gRender();return}_rG()};
 S[GT]=['Gastos','💰'];
@@ -1350,12 +1398,12 @@ function gRes(){
   if(prevM){const rc=gagg(R,r=>r.cc).map(a=>({k:a.k,d:a.mm[lf]-a.mm[lf-1]})).sort((x,y)=>y.d-x.d);const ra=gagg(R,r=>r.ctn).map(a=>({k:a.k,d:a.mm[lf]-a.mm[lf-1]})).sort((x,y)=>y.d-x.d);
     hs.push(`<b>${gC(GX.pln(lf))}</b> ${dL>=0?'subió':'bajó'} <b>${gm(Math.abs(lastM-prevM))}</b> (${gp(dL)}) contra ${GX.pln(lf-1)}. La sucursal que más empujó el aumento fue <b>${GX.CCN[rc[0].k]||rc[0].k}</b> (${gm(rc[0].d)}) y la cuenta con mayor alza <b>${ra[0].k.toLowerCase()}</b> (${gm(ra[0].d)}). <a href="javascript:GS.t=1;render()">Ver el porqué completo →</a>`)}
   hs.push(`El gasto <b>correctivo</b> es el <b>${(T.tp[1]/ytd*100).toFixed(0)}%</b> del total y el índice correctivo pasó de <b>${idxP.toFixed(0)}%</b> a <b>${idxL.toFixed(0)}%</b> en el último mes completo. Cada peso de preventivo "compra" ${(T.tp[1]/T.tp[0]).toFixed(1)} de correctivo. <a href="javascript:GS.t=4;render()">Ver preventivo vs correctivo →</a>`);
-  hs.push(`Cinco proveedores concentran el <b>${top5.toFixed(0)}%</b> del gasto y <b>${pv.length}</b> proveedores en total; el #1 es <b>${ge(pv[0].k)}</b> con ${gm(pv[0].m)}. <a href="javascript:GS.t=5;render()">Ver proveedores →</a>`);
-  const u=gagg(R.filter(r=>r.un),r=>r.un).sort((a,b)=>b.m-a.m)[0];if(u)hs.push(`La unidad más cara del año es <b>${ge(u.k)}</b> (${ge(G.un.find(x=>x[0]==u.k)[1])}) con <b>${gm(u.m)}</b> en ${u.ot.size} OT. <a href="javascript:GS.t=6;render()">Ver unidades →</a>`);
+  hs.push(`Cinco proveedores concentran el <b>${top5.toFixed(0)}%</b> del gasto y <b>${pv.length}</b> proveedores en total; el #1 es <b>${ge(pv[0].k)}</b> con ${gm(pv[0].m)}. <a href="javascript:GS.t=6;render()">Ver proveedores →</a>`);
+  const u=gagg(R.filter(r=>r.un),r=>r.un).sort((a,b)=>b.m-a.m)[0];if(u)hs.push(`La unidad más cara del año es <b>${ge(u.k)}</b> (${ge(G.un.find(x=>x[0]==u.k)[1])}) con <b>${gm(u.m)}</b> en ${u.ot.size} OT. <a href="javascript:GS.t=7;render()">Ver unidades →</a>`);
   hs.push(`Con el ritmo de los últimos 3 meses (${gm(run)} al mes), el año cerraría cerca de <b>${gm(proj)}</b>. El mes más caro fue <b>${GX.pln(mx)}</b> (${gm(T.mm[mx])}) y el más barato <b>${GX.pln(mn)}</b> (${gm(T.mm[mn])}).`);
   GX._hs=hs;GX._res={ytd,lastM,prevM,prom,idxL,idxP,nOT,perOT,proj,top5,np:pv.length};
-  return `<div class="card story">En lo que va de ${G.per[0].slice(0,4)} se han facturado <b>${gm(ytd)}</b> en mantenimiento de sucursales (${fmt(T.l)} líneas de factura, ${fmt(nOT)} órdenes de trabajo). El último mes completo, <b>${GX.pln(lf)}</b>, cerró en <b>${gm(lastM)}</b>, ${prevM?`<b>${gp(dL)}</b> contra ${GX.pln(lf-1)}`:''}; el promedio mensual es ${gm(prom)}.${GX.partial?` ${GX.pln(NP-1)} lleva ${gm(T.mm[NP-1])} al día ${GX.genDay} y todavía no es comparable.`:''}</div>
-  <div class="grid g4" style="margin-top:12px">${gKpi(gm(ytd),'gasto acumulado '+G.per[0].slice(0,4),'', `${full.length} meses completos`)}${gKpi(gm(lastM),'gasto '+GX.pln(lf),dL>0?'r':'g',prevM?gDl(prevM,lastM)+' vs '+GX.pls(lf-1):'')}${gKpi(gm(prom),'promedio mensual','', `máximo ${gm(T.mm[mx])} (${GX.pls(mx)})`)}${gKpi(idxL.toFixed(0)+'%','índice correctivo · '+GX.pls(lf),idxL>idxP?'r':'g',`antes ${idxP.toFixed(0)}% · acumulado ${(T.tp[1]/(T.tp[0]+T.tp[1])*100).toFixed(0)}%`)}
+  return `<div class="card story">En lo que va de ${GX.per[0].slice(0,4)} se han facturado <b>${gm(ytd)}</b> en mantenimiento de sucursales (${fmt(T.l)} líneas de factura, ${fmt(nOT)} órdenes de trabajo). El último mes completo, <b>${GX.pln(lf)}</b>, cerró en <b>${gm(lastM)}</b>, ${prevM?`<b>${gp(dL)}</b> contra ${GX.pln(lf-1)}`:''}; el promedio mensual es ${gm(prom)}.${GX.partial?` ${GX.pln(NP-1)} lleva ${gm(T.mm[NP-1])} al día ${GX.genDay} y todavía no es comparable.`:''}</div>
+  <div class="grid g4" style="margin-top:12px">${gKpi(gm(ytd),'gasto acumulado '+GX.per[0].slice(0,4),'', `${full.length} meses completos`)}${gKpi(gm(lastM),'gasto '+GX.pln(lf),dL>0?'r':'g',prevM?gDl(prevM,lastM)+' vs '+GX.pls(lf-1):'')}${gKpi(gm(prom),'promedio mensual','', `máximo ${gm(T.mm[mx])} (${GX.pls(mx)})`)}${gKpi(idxL.toFixed(0)+'%','índice correctivo · '+GX.pls(lf),idxL>idxP?'r':'g',`antes ${idxP.toFixed(0)}% · acumulado ${(T.tp[1]/(T.tp[0]+T.tp[1])*100).toFixed(0)}%`)}
   ${gKpi(fmt(nOT),'órdenes de trabajo (OT)','', `${gf(perOT)} por OT en promedio`)}${gKpi(gm(proj),'cierre proyectado del año','a', `ritmo de los últimos 3 meses`)}${gKpi(pv.length,'proveedores activos','', `top 5 = ${top5.toFixed(0)}% del gasto`)}${gKpi(ccs.length,'centros con gasto','', `${ccs.slice(0,10).reduce((a,x)=>a+x.m,0)/ytd*100|0}% en los 10 principales`)}</div>
   <div class="card" style="margin-top:12px"><h3>Gasto mensual · preventivo, correctivo y sin OT</h3>${gStack(T)}${GX.partial?'<p class="note">* Mes en curso (corte del ERP), no comparable con meses completos.</p>':''}</div>
   <div class="card" style="margin-top:12px"><h3>Hallazgos automáticos</h3><ul class="h">${hs.map(x=>`<li>${x}</li>`).join('')}</ul></div>
@@ -1363,10 +1411,11 @@ function gRes(){
   <div class="card"><h3>Top 10 cuentas de gasto</h3>${cts.slice(0,10).map(a=>`<div class="br ck" onclick="gGo('ctn','${gq(a.k)}')"><span title="${ge(a.k)}">${ge(gTitle(a.k))}</span><i style="width:${100*a.m/cts[0].m}%;background:${/PREV/.test(a.k)?'linear-gradient(90deg,#1fa86a,#36d08a)':''}"></i><em>${gm(a.m)}</em></div>`).join('')}<p class="note">Verde = cuenta preventiva · azul = correctiva u otras.</p></div></div>`;
 }
 // salta a "¿Por qué cambió?" filtrando un miembro
-function gGo(dim,key){GS.fl={};GS.fl[dim]=key;GS.dim=dim=='cc'?'ctn':dim=='ctn'?'cc':dim=='pv'?'cc':dim=='un'?'ctn':'cc';GS.t=1;render();scrollTo(0,0)}
+function gGo(dim,key){GS.fl={};GS.fl[dim]=key;GS.dim=dim=='cc'?'ctn':dim=='ctn'?'cc':dim=='pv'?'cc':dim=='un'?'ctn':(dim=='md'||dim=='ut')?'cc':'cc';GS.t=1;render();scrollTo(0,0)}
 function gClr(k){if(k)delete GS.fl[k];else GS.fl={};render()}
 // ---------- 2 · ¿POR QUÉ CAMBIÓ? ----------
 function gWhy(){
+  if(GX.NP<2)return `<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><div class="card gwarn">Para comparar necesitas un periodo de al menos 2 meses. Ajusta <b>Desde / hasta</b> arriba (por ejemplo "Todo el año").</div>`;
   const NP=GX.NP,rs=gfl(),T=gtot(rs),A=GS.a,B=GS.b,dim=GDIM[GS.dim];
   const ma=T.mm[A],mb=T.mm[B],d=mb-ma;
   // volumen vs costo por OT (solo gasto con OT)
@@ -1379,7 +1428,7 @@ function gWhy(){
   const warn=GX.partial&&(A==NP-1||B==NP-1)?`<div class="card gwarn">⚠️ ${GX.pln(NP-1)} es un mes <b>parcial</b> (corte al día ${GX.genDay} de ${GX.dm}). La comparación contra un mes completo no es justa: casi siempre parecerá una "baja". Compara meses completos.</div>`:'';
   const flc=Object.keys(GS.fl).filter(k=>GS.fl[k]!==''&&GS.fl[k]!=null);
   const crumb=flc.length?`<div class="gcr"><b>Filtrando:</b> ${flc.map(k=>`<span class="chip on" onclick="gClr('${k}')">${GFN[k]}: ${ge(k=='tp'?GTP[GS.fl[k]]:k=='cc'?(GX.CCN[GS.fl[k]]||'')+' · '+GS.fl[k]:GS.fl[k])} ✕</span>`).join('')}<span class="chip" onclick="gClr()">Quitar todo</span></div>`:'';
-  const monthSel=(id,v)=>`<select onchange="GS.${id}=+this.value;render()">${G.per.map((p,i)=>`<option value="${i}" ${i==v?'selected':''}>${GX.pl(i)}${GX.partial&&i==NP-1?' (parcial)':''}</option>`).join('')}</select>`;
+  const monthSel=(id,v)=>`<select onchange="GS.${id}=+this.value;render()">${GX.per.map((p,i)=>`<option value="${i}" ${i==v?'selected':''}>${GX.pl(i)}${GX.partial&&i==NP-1?' (parcial)':''}</option>`).join('')}</select>`;
   // narrativa
   const lead=[...up.slice(0,2)].map(x=>`<b>${ge(dim[2](x.k))}</b> (${gm(x.d)})`).join(' y ');
   const lag=[...dn.slice(0,2)].map(x=>`<b>${ge(dim[2](x.k))}</b> (${gm(x.d)})`).join(' y ');
@@ -1392,7 +1441,7 @@ function gWhy(){
   const oUp=sumUp-up.slice(0,nUp).reduce((a,x)=>a+x.d,0);if(up.length>nUp)seq.push(['Otros ↑ ('+(up.length-nUp)+')',oUp]);
   dn.slice(0,nDn).forEach(x=>seq.push([gShort(dim,x.k),x.d,x.k]));
   const oDn=sumDn-dn.slice(0,nDn).reduce((a,x)=>a+x.d,0);if(dn.length>nDn)seq.push(['Otros ↓ ('+(dn.length-nDn)+')',oDn]);
-  const wf=gWater(GX.pls(A)+' '+G.per[A].slice(2,4),ma,seq,GX.pls(B)+' '+G.per[B].slice(2,4),mb);
+  const wf=gWater(GX.pls(A)+' '+GX.per[A].slice(2,4),ma,seq,GX.pls(B)+' '+GX.per[B].slice(2,4),mb);
   const rowsT=(()=>{const sNow=GS.sort.why;let arr=items.slice();if(sNow){const i=sNow[0],dd=sNow[1];arr.sort((x,y)=>(i==-1?0:0)+(dd)*(((i===0)?Math.abs(x.d)-Math.abs(y.d):(i===1)?x.a-y.a:(i===2)?x.b-y.b:(i===3)?x.d-y.d:(i===4)?(x.a?x.d/x.a:0)-(y.a?y.d/y.a:0):(i===5)?x.t-y.t:(dim[2](x.k)).localeCompare(dim[2](y.k)))))}else arr.sort((x,y)=>Math.abs(y.d)-Math.abs(x.d));return arr})();
   const mxd=Math.max(1,...items.map(x=>Math.abs(x.d)));
   const canDrill=GS.dim!='tp';
@@ -1439,11 +1488,11 @@ function gCC(){
   const sh=(i,l)=>`<th onclick="gSortBy('cc',${i},-1)">${l}${s[0]===i?(s[1]<0?' ▼':' ▲'):''}</th>`;
   const subiendo=ccs.filter(a=>a.vs>=30&&a.prom>=20000).sort((x,y)=>(y.last-y.prom)-(x.last-x.prom)).slice(0,6);
   const lim=GS.all.cc?9999:30;
-  const body=ccs.slice(0,lim).map(a=>`<tr class="ck" onclick="gGo('cc','${gq(a.k)}')"><td><b>${a.k}</b> <span class="nd">${ge(a.nm.replace(/ SUCURSAL/,' S.').slice(0,26))}</span></td><td>${ge(a.rg)}</td><td><b>${gm(a.m)}</b><br><span class="note">${(a.m/T.m*100).toFixed(1)}%</span></td>${G.per.map((p,i)=>`<td style="${gHeat(a.mm[i],a.prom)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${a.mm[i]?gm(a.mm[i]):'–'}</td>`).join('')}<td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),70,22)}</td><td>${gDl(a.prom,a.last)}</td><td>${a.idx.toFixed(0)}%</td><td>${a.perOT?gf(a.perOT):'–'}</td></tr>`).join('');
+  const body=ccs.slice(0,lim).map(a=>`<tr class="ck" onclick="gGo('cc','${gq(a.k)}')"><td><b>${a.k}</b> <span class="nd">${ge(a.nm.replace(/ SUCURSAL/,' S.').slice(0,26))}</span></td><td>${ge(a.rg)}</td><td><b>${gm(a.m)}</b><br><span class="note">${(a.m/T.m*100).toFixed(1)}%</span></td>${GX.per.map((p,i)=>`<td style="${gHeat(a.mm[i],a.prom)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${a.mm[i]?gm(a.mm[i]):'–'}</td>`).join('')}<td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),70,22)}</td><td>${gDl(a.prom,a.last)}</td><td>${a.idx.toFixed(0)}%</td><td>${a.perOT?gf(a.perOT):'–'}</td></tr>`).join('');
   return `<h2 style="margin-top:6px">Gasto por sucursal</h2><p class="sub">${ccs.length} centros · cada celda se pinta contra el promedio de la propia sucursal: <span style="background:rgba(255,93,108,.33);padding:0 6px;border-radius:4px">≥130%</span> <span style="background:rgba(255,171,61,.26);padding:0 6px;border-radius:4px">≥110%</span> <span style="background:rgba(54,208,138,.22);padding:0 6px;border-radius:4px">≤70%</span>. Clic en una fila para ver por qué cambió.</p>
   <div class="fbar"><b>Buscar</b><input placeholder="Sucursal, código o región" value="${ge(GS.q)}" oninput="GS.q=this.value;gKeep('cc')" id="gq"></div>
   ${subiendo.length?`<div class="card" style="margin-bottom:12px"><h3>🚨 Sucursales que subieron más de 30% contra su propio promedio en ${GX.pln(lf)}</h3><div class="grid g3">${subiendo.map(a=>`<div class="rk" onclick="gGo('cc','${gq(a.k)}')"><div class="n">${a.k.slice(0,3)}</div><div style="flex:1"><b>${a.k}</b> <span class="nd">${ge(a.nm.slice(0,24))}</span><br><span class="note">${gm(a.prom)} promedio → <b style="color:var(--rd)">${gm(a.last)}</b> (${gp(a.vs,0)})</span></div></div>`).join('')}</div></div>`:''}
-  <div class="card" style="padding:0"><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr>${sh(0,'Sucursal')}<th>Región</th>${sh(1,'Total')}${G.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Tendencia</th>${sh(4,'Último vs prom.')}${sh(5,'% correct.')}${sh(6,'$/OT')}</tr>${body}</table></div></div>
+  <div class="card" style="padding:0"><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr>${sh(0,'Sucursal')}<th>Región</th>${sh(1,'Total')}${GX.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Tendencia</th>${sh(4,'Último vs prom.')}${sh(5,'% correct.')}${sh(6,'$/OT')}</tr>${body}</table></div></div>
   ${ccs.length>lim?`<p class="note"><span class="chip" onclick="GS.all.cc=1;render()">Ver las ${ccs.length} sucursales</span></p>`:''}${GX.partial?`<p class="note">* ${GX.pln(NP-1)} parcial (día ${GX.genDay}); el "Último vs prom." usa ${GX.pln(lf)}.</p>`:''}`;
 }
 function gKeep(k){const el=document.getElementById('gq');const pos=el.selectionStart;render();const e2=document.getElementById('gq');if(e2){e2.focus();e2.setSelectionRange(pos,pos)}}
@@ -1455,12 +1504,12 @@ function gCta(){
   cts.forEach(a=>{a.prom=fm.reduce((s,p)=>s+a.mm[p],0)/fm.length;a.last=a.mm[lf];a.vs=a.prom?(a.last-a.prom)/a.prom*100:0;a.t=/PREV/.test(a.k)?0:/CORREC|CORRE$/.test(a.k)?1:2});
   const s=GS.sort.cta||[1,-1];cts.sort((x,y)=>{const f=[a=>a.k,a=>a.m,a=>a.m,a=>a.last,a=>a.vs][s[0]]||(a=>a.m);const a=f(x),b=f(y);return (typeof a=='string'?a.localeCompare(b):a-b)*s[1]});
   const sh=(i,l)=>`<th onclick="gSortBy('cta',${i},-1)">${l}${s[0]===i?(s[1]<0?' ▼':' ▲'):''}</th>`;
-  const body=cts.slice(0,GS.all.cta?999:30).map(a=>`<tr class="ck" onclick="gGo('ctn','${gq(a.k)}')"><td>${ge(gTitle(a.k))} <span class="pill ${a.t==0?'g':a.t==1?'r':''}">${a.t==0?'Preventiva':a.t==1?'Correctiva':'Otra'}</span></td><td><b>${gm(a.m)}</b></td><td>${(a.m/T.m*100).toFixed(1)}%</td>${G.per.map((p,i)=>`<td style="${gHeat(a.mm[i],a.prom)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${a.mm[i]?gm(a.mm[i]):'–'}</td>`).join('')}<td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td><td>${gDl(a.prom,a.last)}</td></tr>`).join('');
+  const body=cts.slice(0,GS.all.cta?999:30).map(a=>`<tr class="ck" onclick="gGo('ctn','${gq(a.k)}')"><td>${ge(gTitle(a.k))} <span class="pill ${a.t==0?'g':a.t==1?'r':''}">${a.t==0?'Preventiva':a.t==1?'Correctiva':'Otra'}</span></td><td><b>${gm(a.m)}</b></td><td>${(a.m/T.m*100).toFixed(1)}%</td>${GX.per.map((p,i)=>`<td style="${gHeat(a.mm[i],a.prom)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${a.mm[i]?gm(a.mm[i]):'–'}</td>`).join('')}<td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td><td>${gDl(a.prom,a.last)}</td></tr>`).join('');
   const sysRow=sys.map(a=>{const tot=a.tp[0]+a.tp[1];return `<tr class="ck" onclick="gGo('sy','${gq(a.k)}')"><td><b>${ge(a.k)}</b></td><td>${gm(a.m)}</td><td>${(a.m/T.m*100).toFixed(1)}%</td><td><span class="bar" style="width:110px;display:flex"><i style="width:${tot?a.tp[0]/tot*100:0}%;background:var(--gn);border-radius:4px 0 0 4px"></i><i style="width:${tot?a.tp[1]/tot*100:0}%;background:var(--rd);border-radius:0 4px 4px 0"></i></span></td><td>${tot?(a.tp[1]/tot*100).toFixed(0)+'%':'–'}</td><td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td><td>${gDl(a.mm[lf-1],a.mm[lf])}</td></tr>`}).join('');
   return `<h2 style="margin-top:6px">Gasto por cuenta y sistema</h2><p class="sub">Las cuentas con el mismo nombre en distintos nodos (Paquetexpress, Impulsora, Compras) se suman como un solo concepto.</p>
   <div class="grid g2"><div class="card"><h3>Por sistema del vehículo</h3><div style="overflow-x:auto"><table><tr><th>Sistema</th><th>Total</th><th>%</th><th>Prev. / Corr.</th><th>% corr.</th><th>Tendencia</th><th>${GX.pls(lf)} vs ${GX.pls(lf-1)}</th></tr>${sysRow}</table></div></div>
   <div class="card"><h3>Por tipo de equipo y entidad</h3>${eq.sort((a,b)=>b.m-a.m).map(a=>`<div class="br"><span>${a.k}</span><i style="width:${100*a.m/T.m}%"></i><em>${gm(a.m)} · ${(a.m/T.m*100).toFixed(0)}%</em></div>`).join('')}<div style="height:8px"></div>${nd.map(a=>`<div class="br ck" onclick="gGo('ndn','${gq(a.k)}')"><span title="${ge(a.k)}">${ge(a.k.slice(0,20))}</span><i style="width:${100*a.m/nd[0].m}%;background:linear-gradient(90deg,#ffab3d,#ffd08a)"></i><em>${gm(a.m)}</em></div>`).join('')}</div></div>
-  <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Todas las cuentas (${cts.length})</h3><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr>${sh(0,'Cuenta')}${sh(1,'Total')}<th>%</th>${G.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Tendencia</th>${sh(4,'Último vs prom.')}</tr>${body}</table></div></div>${cts.length>30?`<p class="note"><span class="chip" onclick="GS.all.cta=!GS.all.cta;render()">${GS.all.cta?'Ver solo 30':'Ver las '+cts.length}</span></p>`:''}`;
+  <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Todas las cuentas (${cts.length})</h3><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr>${sh(0,'Cuenta')}${sh(1,'Total')}<th>%</th>${GX.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Tendencia</th>${sh(4,'Último vs prom.')}</tr>${body}</table></div></div>${cts.length>30?`<p class="note"><span class="chip" onclick="GS.all.cta=!GS.all.cta;render()">${GS.all.cta?'Ver solo 30':'Ver las '+cts.length}</span></p>`:''}`;
 }
 // ---------- 5 · PREVENTIVO VS CORRECTIVO ----------
 function gPC(){
@@ -1482,6 +1531,44 @@ function gPC(){
   <div class="grid g2" style="margin-top:12px"><div class="card"><h3>🔴 Mayor dependencia del correctivo</h3><div style="overflow-x:auto"><table><tr><th>Sucursal</th><th>Prev.</th><th>Corr.</th><th>Índice</th><th>$/OT</th></tr>${worst.slice(0,10).map(a=>(a.perOT=a.con/Math.max(1,a.ot.size),rowC(a,'var(--rd)'))).join('')}</table></div><p class="note">Sucursales con al menos $150k de gasto con OT.</p></div>
   <div class="card"><h3>🟢 Más preventivas</h3><div style="overflow-x:auto"><table><tr><th>Sucursal</th><th>Prev.</th><th>Corr.</th><th>Índice</th><th>$/OT</th></tr>${best.slice(0,10).map(a=>(a.perOT=a.con/Math.max(1,a.ot.size),rowC(a,'var(--gn)'))).join('')}</table></div></div></div>
   <div class="card" style="margin-top:12px"><h3>Por subtipo de OT</h3><div style="overflow-x:auto"><table><tr><th>Subtipo</th><th>Gasto</th><th>%</th><th>Tendencia</th><th>${GX.pls(lf)} vs ${GX.pls(lf-1)}</th></tr>${sbs.map(a=>`<tr class="ck" onclick="gGo('sb','${gq(a.k)}')"><td>${ge(a.k)}</td><td>${gm(a.m)}</td><td>${(a.m/T.m*100).toFixed(1)}%</td><td>${gSpark(a.mm.slice(0,GX.partial?NP-1:NP),70,20)}</td><td>${gDl(a.mm[lf-1],a.mm[lf])}</td></tr>`).join('')}</table></div><p class="note">"Reactiva" y "De emergencia" son correctivos sin planeación; "Planificada" es la que se puede programar.</p></div>`;
+}
+// ---------- 5b · TIPO DE UNIDAD ----------
+function gUtRows(rs,kf){
+  const a=gagg(rs,kf),U=new Map();rs.forEach(r=>{if(!r.un)return;const k=kf(r);let s=U.get(k);if(!s)U.set(k,s=new Set());s.add(r.un)});
+  const nf=GX.NP-(GX.partial?1:0)||1;
+  a.forEach(x=>{x.pre=x.tp[0];x.cor=x.tp[1];x.sin=x.tp[2];x.idx=x.pre+x.cor?x.cor/(x.pre+x.cor)*100:0;x.uni=U.has(x.k)?U.get(x.k).size:0;x.pu=x.uni?x.m/x.uni:0;x.nOT=x.ot.size;x.pOT=x.nOT?(x.pre+x.cor)/x.nOT:0;
+    let fm=0;for(let p=0;p<GX.NP;p++)if(!(GX.partial&&p==GX.NP-1))fm+=x.mm[p];x.fm=fm;x.nf=nf});
+  return a}
+function gUt(){
+  const R=GX.R,NP=GX.NP,T=gtot(R),nf=NP-(GX.partial?1:0)||1;
+  const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);
+  // flota del inventario por categoría (suma de los modelos mapeados, sin repetir)
+  const mdAll=gUtRows(R,r=>r.md);const mdCat={};R.forEach(r=>mdCat[r.md]=r.ut);
+  mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0});
+  cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0});
+  const top=cats[0],mxI=cats.filter(c=>c.pre+c.cor>=300000).sort((a,b)=>b.idx-a.idx)[0],mxU=cats.filter(c=>c.uni>=10).sort((a,b)=>b.pu-a.pu)[0];
+  const mx=Math.max(...cats.map(c=>c.m),1);
+  const bars=cats.map(c=>{const t=c.m||1;return `<div class="gsb ck" onclick="GS.utSel='${gq(c.k)}';render()"><span title="${ge(c.k)}"><b>${ge(c.k)}</b></span><div class="gsbar" style="width:${100*c.m/mx}%"><i style="width:${c.pre/t*100}%;background:var(--gn)" title="Preventivo ${gf(c.pre)}"></i><i style="width:${c.cor/t*100}%;background:var(--rd)" title="Correctivo ${gf(c.cor)}"></i><i style="width:${c.sin/t*100}%;background:var(--mu)" title="Sin OT ${gf(c.sin)}"></i></div><em><b>${gm(c.m)}</b> · <span style="color:var(--gn)">${gm(c.pre)}</span> / <span style="color:var(--rd)">${gm(c.cor)}</span> · ${c.idx.toFixed(0)}% corr.</em></div>`}).join('');
+  const s=GS.sort.ut||[0,-1];const cols=[x=>x.m,x=>x.k,x=>x.pre,x=>x.cor,x=>x.idx,x=>x.uni,x=>x.pu,x=>x.nOT,x=>x.pOT,x=>x.pfm];
+  const sh=(key,i,l)=>`<th onclick="gSortBy('${key}',${i},-1)">${l}${(GS.sort[key]||[0,-1])[0]===i?((GS.sort[key]||[0,-1])[1]<0?' ▼':' ▲'):''}</th>`;
+  const srt=(arr,key)=>{const q=GS.sort[key]||[0,-1];return arr.slice().sort((x,y)=>{const f=cols[q[0]];const a=f(x),b=f(y);return (typeof a=='string'?a.localeCompare(b):a-b)*q[1]})};
+  const row=(x,click)=>`<tr class="ck" onclick="${click}"><td><b>${ge(x.k)}</b></td><td><b>${gm(x.m)}</b></td><td style="color:var(--gn)">${gm(x.pre)}</td><td style="color:var(--rd)">${gm(x.cor)}</td><td><span class="bar" style="width:70px"><i style="width:${x.idx}%;background:var(--rd)"></i></span> ${x.idx.toFixed(0)}%</td><td>${x.uni||'–'}</td><td>${x.uni?gf(x.pu):'–'}</td><td>${x.nOT}</td><td>${x.nOT?gf(x.pOT):'–'}</td><td>${x.fl?fmt(x.fl)+' uds':'<span class="nd">–</span>'}</td><td>${x.fl?'<b>'+gf(x.pfm)+'</b>':'<span class="nd">–</span>'}</td><td>${gSpark(x.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td></tr>`;
+  const head=`<tr><th>Tipo</th>${sh('ut',0,'Total')}${sh('ut',2,'Preventivo')}${sh('ut',3,'Correctivo')}${sh('ut',4,'% corr.')}${sh('ut',5,'Unidades con gasto')}${sh('ut',6,'$ por unidad')}${sh('ut',7,'OT')}${sh('ut',8,'$ por OT')}<th>Flota (inventario)</th>${sh('ut',9,'$ por unidad de flota / mes')}<th>Tendencia</th></tr>`;
+  const sel=GS.utSel&&cats.find(c=>c.k==GS.utSel)?GS.utSel:'';
+  const mods=srt(mdAll.filter(x=>!sel||x.ut==sel),'md');
+  // híbrido vs diésel
+  const hy=[];mdAll.forEach(h=>{if(!/HIBRIDO/.test(h.k))return;const base=h.k.replace(/\s*HIBRIDO\s*/,' ').replace(/\s+/g,' ').trim();const b=mdAll.find(x=>x.k==base);if(b&&b.fl&&h.fl)hy.push({a:b,b:h})});
+  const hyHtml=hy.length?`<div class="card" style="margin-top:12px"><h3>⚡ Híbrido vs convencional (mismo modelo)</h3><div style="overflow-x:auto"><table><tr><th>Modelo</th><th>Flota conv.</th><th>$ / unidad / mes conv.</th><th>% corr. conv.</th><th>Flota híbrido</th><th>$ / unidad / mes híbrido</th><th>% corr. híbrido</th><th>Diferencia</th></tr>${hy.map(({a,b})=>`<tr><td><b>${ge(a.k)}</b></td><td>${a.fl}</td><td>${gf(a.pfm)}</td><td>${a.idx.toFixed(0)}%</td><td>${b.fl}</td><td>${gf(b.pfm)}</td><td>${b.idx.toFixed(0)}%</td><td>${gDl(a.pfm,b.pfm)}</td></tr>`).join('')}</table></div><p class="note">Gasto del periodo (meses completos) ÷ unidades del inventario ÷ meses. Verde = el híbrido cuesta menos de mantener.</p></div>`:'';
+  // matriz tipo × mes
+  const mat=`<div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Gasto mensual por tipo de unidad</h3><div style="overflow-x:auto"><table class="gtb"><tr><th>Tipo</th>${GX.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Total</th></tr>${cats.map(c=>{const av=c.fm/nf;return `<tr><td><b>${ge(c.k)}</b></td>${c.mm.map((v,i)=>`<td style="${gHeat(v,av)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${v?gm(v):'–'}</td>`).join('')}<td><b>${gm(c.m)}</b></td></tr>`}).join('')}</table></div></div>`;
+  const nCorr=cats.reduce((a,c)=>a+c.cor,0),nPre=cats.reduce((a,c)=>a+c.pre,0);
+  return `<h2 style="margin-top:6px">Gasto por tipo de unidad</h2><p class="sub">Cuánto cuesta mantener cada tipo de unidad, en preventivo y en correctivo. Filtros: <b>${ge(gFiltTxt())}</b>. Clic en un tipo para ver sus modelos.</p>
+  <div class="card story"><b>${ge(top.k)}</b> es el tipo que más gasta: <b>${gm(top.m)}</b> (${(top.m/T.m*100).toFixed(0)}% del total), con ${top.idx.toFixed(0)}% en correctivo.${mxI?` El más dependiente del correctivo es <b>${ge(mxI.k)}</b> (${mxI.idx.toFixed(0)}%).`:''}${mxU?` Por unidad con gasto, el más caro es <b>${ge(mxU.k)}</b> (${gf(mxU.pu)} por unidad en el periodo).`:''} En total, ${gm(nPre)} fueron preventivos y ${gm(nCorr)} correctivos.</div>
+  <div class="grid g4" style="margin-top:12px">${gKpi(gm(T.m),'gasto del filtro')}${gKpi(cats.length,'tipos de unidad','',`${mdAll.length} modelos`)}${gKpi(gm(nPre),'preventivo','g',`${(nPre/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}${gKpi(gm(nCorr),'correctivo','r',`${(nCorr/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}</div>
+  <div class="card" style="margin-top:12px"><h3>Preventivo <span style="color:var(--gn)">■</span> vs correctivo <span style="color:var(--rd)">■</span> por tipo de unidad</h3>${bars}<p class="note">Ancho de la barra = gasto total del tipo. Verde preventivo · rojo correctivo · gris sin OT.</p></div>
+  <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Detalle por tipo de unidad</h3><div style="overflow-x:auto"><table class="gtb">${head}${srt(cats,'ut').map(c=>row(c,`GS.utSel='${gq(c.k)}';render()`)).join('')}</table></div></div>
+  <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Modelos${sel?' de '+ge(sel)+' <span class="chip on" onclick="GS.utSel=\'\';render()">Ver todos ✕</span>':' (todos)'}</h3><div style="overflow-x:auto;max-height:70vh"><table class="gtb">${head.replace('<th>Tipo</th>','<th>Modelo</th>')}${mods.map(x=>row(x,`gGo('md','${gq(x.k)}')`)).join('')}</table></div><p class="note" style="padding:0 14px 12px">Clic en un modelo para ver por qué cambió su gasto. "$ por unidad de flota" usa el inventario del portal cuando el modelo se puede emparejar.</p></div>
+  ${hyHtml}${mat}`;
 }
 // ---------- 6 · PROVEEDORES ----------
 function gPv(){
@@ -1508,7 +1595,7 @@ function gPv(){
 }
 // ---------- 7 · UNIDADES (cruce con inmovilización) ----------
 function gUnitInm(){ // para cada unidad: veces detenida, días inmovilizada en el año, detenida hoy
-  const y=G.per[0].slice(0,4),a=y+'-01-01',m={};
+  const y=GX.per[0].slice(0,4),a=y+'-01-01',m={};
   D.forEach(r=>{const k=String(r[11]||'').trim();if(!k)return;const o=m[k]||(m[k]={n:0,d:0,hoy:false,suc:r[1],fa:r[5]});o.n++;o.d+=daysIn(r,a,TODAY);if(r[6])o.hoy=true});
   return m}
 function gUn(){
@@ -1527,19 +1614,19 @@ function gUn(){
   const corr=Math.min(un.length,1);
   return `<h2 style="margin-top:6px">Unidades con mayor gasto</h2><p class="sub">${fmt(un.length)} unidades con gasto · ${noInm} de ellas también aparecen en el seguimiento de inmovilizados.</p>
   <div class="grid g4">${gKpi(gm(totU),'gasto en unidades identificadas','', `${(totU/T.m*100).toFixed(0)}% del total`)}${gKpi((tot10/totU*100).toFixed(0)+'%','en las 10 más caras','a', 'Pareto de unidades')}${gKpi((tot100/totU*100).toFixed(0)+'%','en las 100 más caras','', `${(100/un.length*100).toFixed(1)}% de las unidades`)}${gKpi(dbl.length,'con gasto alto y paros','r',`gasto ≥ ${gm(gt)} y ${it}+ paros`)}</div>
-  ${dbl.length?`<div class="card" style="margin-top:12px"><h3>🔁 Gastan mucho y además se paran: candidatas a revisión (reemplazo, renta o reparación mayor)</h3><div style="overflow-x:auto"><table><tr><th>Unidad</th><th>Descripción</th><th>Sucursal</th><th>Gasto ${G.per[0].slice(0,4)}</th><th>OT</th><th>Veces detenida</th><th>Días inmovilizada</th><th>Hoy</th></tr>${dbl.map(a=>`<tr class="ck" onclick="gGo('un','${gq(a.k)}')"><td><b>${ge(a.k)}</b></td><td>${ge(a.desc)}</td><td>${a.cc}</td><td><b>${gf(a.m)}</b></td><td>${a.ot.size}</td><td>${a.inm}</td><td>${fmt(a.dias)}</td><td>${a.hoy?'<span class="pill r">detenida</span>':''}</td></tr>`).join('')}</table></div><p class="note">Cruce entre el gasto del ERP y el histórico de inmovilizaciones del portal (mismo número de móvil).</p></div>`:''}
+  ${dbl.length?`<div class="card" style="margin-top:12px"><h3>🔁 Gastan mucho y además se paran: candidatas a revisión (reemplazo, renta o reparación mayor)</h3><div style="overflow-x:auto"><table><tr><th>Unidad</th><th>Descripción</th><th>Sucursal</th><th>Gasto ${GX.per[0].slice(0,4)}</th><th>OT</th><th>Veces detenida</th><th>Días inmovilizada</th><th>Hoy</th></tr>${dbl.map(a=>`<tr class="ck" onclick="gGo('un','${gq(a.k)}')"><td><b>${ge(a.k)}</b></td><td>${ge(a.desc)}</td><td>${a.cc}</td><td><b>${gf(a.m)}</b></td><td>${a.ot.size}</td><td>${a.inm}</td><td>${fmt(a.dias)}</td><td>${a.hoy?'<span class="pill r">detenida</span>':''}</td></tr>`).join('')}</table></div><p class="note">Cruce entre el gasto del ERP y el histórico de inmovilizaciones del portal (mismo número de móvil).</p></div>`:''}
   <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Top 300 unidades por gasto</h3><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr><th>#</th>${sh(1,'Unidad')}<th>Descripción</th><th>Suc.</th>${sh(0,'Gasto')}${sh(2,'OT')}${sh(3,'$/OT')}${sh(4,'% corr.')}${sh(5,'Veces detenida')}${sh(6,'Días inmov.')}<th>Hoy</th></tr>${arr.slice(0,GS.all.un?300:50).map((a,i)=>`<tr class="ck" onclick="gGo('un','${gq(a.k)}')"><td>${i+1}</td><td><b>${ge(a.k)}</b></td><td>${ge(a.desc.slice(0,28))}</td><td>${a.cc}</td><td><b>${gf(a.m)}</b></td><td>${a.ot.size}</td><td>${gf(a.perOT)}</td><td>${a.idx.toFixed(0)}%</td><td>${a.inm||'–'}</td><td>${a.dias?fmt(a.dias):'–'}</td><td>${a.hoy?'<span class="pill r">sí</span>':''}</td></tr>`).join('')}</table></div></div><p class="note"><span class="chip" onclick="GS.all.un=!GS.all.un;render()">${GS.all.un?'Ver solo 50':'Ver las 300'}</span></p>`;
 }
 // ---------- 8 · CRUCE CON LA FLOTA ----------
 function gFl(){
-  const R=GX.R,NP=GX.NP,y=G.per[0].slice(0,4);const T=gtot(R);
+  const R=GX.R,NP=GX.NP,y=GX.per[0].slice(0,4);const T=gtot(R);
   const pf=gagg(R,r=>r.cc.slice(0,3));const a0=y+'-01-01',H=D.filter(r=>r[6]);
   const rows=pf.map(a=>{const fl=F[a.k]?F[a.k][0]:0;let dias=0,ev=0;D.forEach(r=>{if(r[0]==a.k){const d=daysIn(r,a0,TODAY);dias+=d;if(d>0)ev++}});const hoy=H.filter(r=>r[0]==a.k).length;return {k:a.k,rg:F[a.k]?F[a.k][1]:'–',m:a.m,fl,por:fl?a.m/fl:0,dias,dpu:fl?dias/fl:0,ev,hoy,up:fl?(fl-hoy)/fl*100:null,idx:a.tp[0]+a.tp[1]?a.tp[1]/(a.tp[0]+a.tp[1])*100:0}}).filter(r=>r.fl>=8);
   const corr=(xs,ys)=>{const n=xs.length,mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;let sxy=0,sx=0,sy=0;for(let i=0;i<n;i++){sxy+=(xs[i]-mx)*(ys[i]-my);sx+=(xs[i]-mx)**2;sy+=(ys[i]-my)**2}return sxy/Math.sqrt(sx*sy||1)};
   const r1=corr(rows.map(r=>r.dpu),rows.map(r=>r.por));
   // mensual: gasto vs días-unidad perdidos
-  const mdays=G.per.map(p=>{const t=TREND.find(x=>x.m==p);return t?t.d:null});const ok=G.per.map((p,i)=>mdays[i]!=null&&!(GX.partial&&i==NP-1));
-  const mg=gtot(R).mm;const rm=corr(G.per.map((p,i)=>ok[i]?mdays[i]:null).filter(v=>v!=null),G.per.map((p,i)=>ok[i]?mg[i]:null).filter(v=>v!=null));
+  const mdays=GX.per.map(p=>{const t=TREND.find(x=>x.m==p);return t?t.d:null});const ok=GX.per.map((p,i)=>mdays[i]!=null&&!(GX.partial&&i==NP-1));
+  const mg=gtot(R).mm;const rm=corr(GX.per.map((p,i)=>ok[i]?mdays[i]:null).filter(v=>v!=null),GX.per.map((p,i)=>ok[i]?mg[i]:null).filter(v=>v!=null));
   const W=760,Hh=260,mxX=Math.max(...rows.map(r=>r.dpu),1),mxY=Math.max(...rows.map(r=>r.por),1),mdX=rows.map(r=>r.dpu).sort((a,b)=>a-b)[rows.length>>1],mdY=rows.map(r=>r.por).sort((a,b)=>a-b)[rows.length>>1];
   const px=v=>48+(W-70)*v/mxX,py=v=>Hh-34-(Hh-60)*v/mxY;
   const sc=`<svg viewBox="0 0 ${W} ${Hh}" width="100%" style="max-width:${W}px"><line x1="${px(mdX)}" x2="${px(mdX)}" y1="14" y2="${Hh-34}" stroke="var(--mu)" stroke-dasharray="4 4"/><line x1="48" x2="${W-14}" y1="${py(mdY)}" y2="${py(mdY)}" stroke="var(--mu)" stroke-dasharray="4 4"/>
@@ -1568,7 +1655,7 @@ function gDet(){
   const show=R.slice().sort((a,b)=>b.m-a.m).slice(0,GS.all.det?1500:100);
   const inp=(k,ph)=>`<input placeholder="${ph}" value="${ge(q[k])}" oninput="GS.dq.${k}=this.value;gKeepD(this)" style="width:150px">`;
   return `<h2 style="margin-top:6px">Detalle de gasto</h2><p class="sub">Cada línea de factura del ERP. Filtra y descarga lo que estás viendo.</p>
-  <div class="fbar"><b>Mes</b><select onchange="GS.dq.per=this.value;render()"><option value="">Todos</option>${G.per.map((p,i)=>`<option value="${i}" ${q.per===String(i)?'selected':''}>${GX.pl(i)}</option>`).join('')}</select><b>Tipo</b><select onchange="GS.dq.tp=this.value;render()"><option value="">Todos</option>${GTP.map((t,i)=>`<option value="${i}" ${q.tp===String(i)?'selected':''}>${t}</option>`).join('')}</select>${inp('cc','Sucursal')}${inp('cta','Cuenta')}${inp('prov','Proveedor')}<span class="chip" onclick="GS.dq={per:'',cc:'',cta:'',prov:'',tp:''};render()">Limpiar</span><span class="chip" style="background:linear-gradient(135deg,#1d7a4d,#2fbf7a);color:#fff" onclick="gDetXls()">📊 Descargar esto en Excel</span></div>
+  <div class="fbar"><b>Mes</b><select onchange="GS.dq.per=this.value;render()"><option value="">Todos</option>${GX.per.map((p,i)=>`<option value="${i}" ${q.per===String(i)?'selected':''}>${GX.pl(i)}</option>`).join('')}</select><b>Tipo</b><select onchange="GS.dq.tp=this.value;render()"><option value="">Todos</option>${GTP.map((t,i)=>`<option value="${i}" ${q.tp===String(i)?'selected':''}>${t}</option>`).join('')}</select>${inp('cc','Sucursal')}${inp('cta','Cuenta')}${inp('prov','Proveedor')}<span class="chip" onclick="GS.dq={per:'',cc:'',cta:'',prov:'',tp:''};render()">Limpiar</span><span class="chip" style="background:linear-gradient(135deg,#1d7a4d,#2fbf7a);color:#fff" onclick="gDetXls()">📊 Descargar esto en Excel</span></div>
   <div class="grid g4">${gKpi(gm(tot),'gasto del filtro')}${gKpi(fmt(R.length),'líneas de factura')}${gKpi(fmt(ot),'órdenes de trabajo')}${gKpi(ot?gf(tot/ot):'–','por OT')}</div>
   <div class="card" style="margin-top:12px;padding:0"><div style="overflow-x:auto;max-height:70vh"><table class="gtb"><tr><th>Mes</th><th>Sucursal</th><th>Cuenta</th><th>Tipo</th><th>Proveedor</th><th>OT</th><th>Unidad</th><th style="text-align:right">Monto</th></tr>${show.map(r=>`<tr><td>${GX.pls(r.p)}</td><td>${r.cc}</td><td>${ge(gTitle(r.ctn).slice(0,32))}</td><td><span class="pill ${r.tp==0?'g':r.tp==1?'r':''}">${GTP[r.tp]}</span></td><td>${ge(r.pv.slice(0,28))}</td><td>${r.ot>=0?G.ot[r.ot]:'–'}</td><td>${ge(r.un)}</td><td style="text-align:right"><b>${gf(r.m)}</b></td></tr>`).join('')}</table></div></div>${R.length>100?`<p class="note">Mostrando las ${show.length} líneas de mayor monto de ${fmt(R.length)}. <span class="chip" onclick="GS.all.det=!GS.all.det;render()">${GS.all.det?'Ver solo 100':'Ver hasta 1,500'}</span> El Excel trae todas.</p>`:''}`;
 }
@@ -1580,21 +1667,23 @@ async function gLoadFile(file,st){
 }
 gInit();
 
+if(typeof refreshDerived=='function'){const _rd=refreshDerived;refreshDerived=function(){_rd();try{gInit()}catch(e){console.error(e)}}}
+
 // ====== Excel ejecutivo del bloque Gastos ======
 function gPlain(h){return String(h).replace(/<a [^>]*>[^<]*<\/a>/g,'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&')}
 function gXlsBuild(){
-  const R=GX.R,NP=GX.NP,lf=GX.lastFull,A=GS.a,Bm=GS.b,per=G.per.map((p,i)=>GX.pl(i)+(GX.partial&&i==NP-1?'*':''));
+  const R=GX.R,NP=GX.NP,lf=GX.lastFull,A=GS.a,Bm=GS.b,per=GX.per.map((p,i)=>GX.pl(i)+(GX.partial&&i==NP-1?'*':''));
   const T=gtot(R);T.mt=gMt(R);gRes();const RS=GX._res,hs=GX._hs||[];
   const B=new XW.Book({title:'Gasto de mantenimiento · Sucursales',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Gasto de mantenimiento'});
-  const sub=`Facturado neto sin IVA · Oracle Fusion · actualizado al ${G.gen}${GX.partial?' · '+GX.pln(NP-1)+' parcial (*)':''}`;
-  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',pv:'Proveedores',un:'Unidades',var:'Variación'};
-  const W={};const tabs={res:XC.navy,mes:XC.blue,cc:XC.blue,cta:XC.blue,sis:XC.blue,pc:XC.gn,pv:XC.or,un:XC.rd,var:XC.rd};
+  const sub=`Facturado neto sin IVA · Oracle Fusion · actualizado al ${G.gen} · Filtros: ${gFiltTxt()}${GX.partial?' · '+GX.pln(NP-1)+' parcial (*)':''}`;
+  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',ut:'Tipo de unidad',pv:'Proveedores',un:'Unidades',var:'Variación'};
+  const W={};const tabs={res:XC.navy,mes:XC.blue,cc:XC.blue,cta:XC.blue,sis:XC.blue,pc:XC.gn,ut:XC.gn,pv:XC.or,un:XC.rd,var:XC.rd};
   Object.keys(names).forEach(k=>W[k]=B.sheet(names[k],{grid:false,tab:tabs[k],zoom:k=='res'?95:100}));
-  const mcols=(get)=>G.per.map((p,i)=>({h:per[i],w:11.5,t:'money',k:get(i)}));
+  const mcols=(get)=>GX.per.map((p,i)=>({h:per[i],w:11.5,t:'money',k:get(i)}));
   // ---- Mensual
   let tM;{const ws=W.mes;xBanner(ws,'Gasto mensual',sub,10);
-    const items=G.per.map((p,i)=>i);
-    const cols=[{h:'Mes',w:14,k:i=>per[i],b:1},{h:'Preventiva',w:15,t:'money',k:i=>T.mt[i][0]},{h:'Correctiva',w:15,t:'money',k:i=>T.mt[i][1]},{h:'Sin OT',w:13,t:'money',k:i=>T.mt[i][2]},{h:'Total',w:16,t:'money',k:i=>T.mm[i],b:1},{h:'Δ % vs mes anterior',w:15,t:'pct',k:i=>i&&T.mm[i-1]?(T.mm[i]-T.mm[i-1])/T.mm[i-1]:null},{h:'Índice correctivo',w:14,t:'pct',k:i=>gIdx(T.mt,i)/100},{h:'OT atendidas',w:13,t:'int',k:i=>T.mo[i].size},{h:'$ por OT',w:13,t:'money',k:i=>T.mo[i].size?T.mc[i]/T.mo[i].size:0},{h:'2025 (ERP incompleto antes de oct)',w:18,t:'money',k:i=>G.py?G.py[+G.per[i].slice(5)-1]||0:0}];
+    const items=GX.per.map((p,i)=>i);
+    const cols=[{h:'Mes',w:14,k:i=>per[i],b:1},{h:'Preventiva',w:15,t:'money',k:i=>T.mt[i][0]},{h:'Correctiva',w:15,t:'money',k:i=>T.mt[i][1]},{h:'Sin OT',w:13,t:'money',k:i=>T.mt[i][2]},{h:'Total',w:16,t:'money',k:i=>T.mm[i],b:1},{h:'Δ % vs mes anterior',w:15,t:'pct',k:i=>i&&T.mm[i-1]?(T.mm[i]-T.mm[i-1])/T.mm[i-1]:null},{h:'Índice correctivo',w:14,t:'pct',k:i=>gIdx(T.mt,i)/100},{h:'OT atendidas',w:13,t:'int',k:i=>T.mo[i].size},{h:'$ por OT',w:13,t:'money',k:i=>T.mo[i].size?T.mc[i]/T.mo[i].size:0},{h:'2025 (ERP incompleto antes de oct)',w:18,t:'money',k:i=>G.py?G.py[+GX.per[i].slice(5)-1]||0:0}];
     tM=xTable(ws,5,cols,items);ws.dataBar(`E6:E${tM.r2}`,'7FA8FF');ws.scale3(`G6:G${tM.r2}`,'B7E4C7','FFE9A8','F8B4BA');
     ws.cell(`F6:F${tM.r2}`,'greaterThan','0',{fc:'9C0006',b:1});ws.cell(`F6:F${tM.r2}`,'lessThan','0',{fc:'1D6F42',b:1});
     xTotal(ws,tM.r2+1,cols,6,tM.r2,{1:{vals:items.map(i=>T.mt[i][0])},2:{vals:items.map(i=>T.mt[i][1])},3:{vals:items.map(i=>T.mt[i][2])},4:{vals:items.map(i=>T.mm[i])},7:{vals:items.map(i=>T.mo[i].size)}});
@@ -1633,6 +1722,18 @@ function gXlsBuild(){
     const cols=[{h:'Centro',w:10,k:a=>a.k,b:1},{h:'Sucursal',w:34,k:a=>GX.CCN[a.k]||''},{h:'Preventiva',w:15,t:'money',k:a=>a.tp[0]},{h:'Correctiva',w:15,t:'money',k:a=>a.tp[1]},{h:'Índice correctivo',w:14,t:'pct',k:a=>a.idx},{h:'OT',w:9,t:'int',k:a=>a.ot.size},{h:'$ por OT',w:13,t:'money',k:a=>a.ot.size?(a.tp[0]+a.tp[1])/a.ot.size:0}];
     const t=xTable(ws,5,cols,arr);ws.scale3(`E6:E${t.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.dataBar(`D6:D${t.r2}`,'F6A5AD');ws.dataBar(`C6:C${t.r2}`,'9ADFC0');ws.filter(5,1,t.r2,7);ws.freeze(5,2);
     ws.chart({type:'bar',title:'Las 10 sucursales con mayor índice correctivo',colors:['E0364A'],labels:true,lblFmt:'0%',gap:40,series:[{name:1,nameRow:5,valCol:5,catCol:1,r1:6,r2:15}]},5,9,620,360)}
+  // ---- Tipo de unidad
+  {const ws=W.ut;xBanner(ws,'Gasto por tipo de unidad · preventivo y correctivo',sub,12);const nf=NP-(GX.partial?1:0)||1;
+    const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);const mdAll=gUtRows(R,r=>r.md);const mdCat={};R.forEach(r=>mdCat[r.md]=r.ut);mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0});
+    cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0});
+    const cols=(h0)=>[{h:h0,w:34,k:a=>a.k,b:1},{h:'Preventivo',w:15,t:'money',k:a=>a.pre},{h:'Correctivo',w:15,t:'money',k:a=>a.cor},{h:'Sin OT',w:13,t:'money',k:a=>a.sin},{h:'Total',w:15,t:'money',k:a=>a.m,b:1},{h:'% correctivo',w:12,t:'pct',k:a=>a.idx/100},{h:'Unidades con gasto',w:12,t:'int',k:a=>a.uni},{h:'$ por unidad',w:13,t:'money',k:a=>a.pu},{h:'OT',w:9,t:'int',k:a=>a.nOT},{h:'$ por OT',w:12,t:'money',k:a=>a.pOT},{h:'Flota (inventario)',w:12,t:'int',k:a=>a.fl||null},{h:'$ por unidad de flota / mes',w:15,t:'money',k:a=>a.pfm||null}];
+    const c1=cols('Tipo de unidad');const t1=xTable(ws,5,c1,cats);
+    ws.dataBar(`E6:E${t1.r2}`,'7FA8FF');ws.scale3(`F6:F${t1.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.dataBar(`C6:C${t1.r2}`,'9ADFC0');ws.dataBar(`D6:D${t1.r2}`,'F6A5AD');
+    xTotal(ws,t1.r2+1,c1,6,t1.r2,{1:{vals:cats.map(a=>a.pre)},2:{vals:cats.map(a=>a.cor)},3:{vals:cats.map(a=>a.sin)},4:{vals:cats.map(a=>a.m)}});
+    ws.chart({type:'bar',stack:true,title:'Preventivo vs correctivo por tipo de unidad',legend:'b',colors:['1DA86A','E0364A','8A99B8'],gap:40,axFmt:'$#,##0,,"M"',series:[2,3,4].map(c=>({name:1,nameRow:5,valCol:c,catCol:1,r1:6,r2:t1.r2}))},t1.r2+4,1,720,380);
+    const r0=t1.r2+25;ws.set(r0-1,1,'Detalle por modelo',{b:1,sz:12,fc:XC.navy});
+    const ms=mdAll.sort((a,b)=>b.m-a.m);const c2=cols('Modelo');const t2=xTable(ws,r0,c2,ms);
+    ws.dataBar(`E${r0+1}:E${t2.r2}`,'7FA8FF');ws.scale3(`F${r0+1}:F${t2.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.freeze(5,1)}
   // ---- Proveedores
   let tP;const pv=gagg(R,r=>r.pv).sort((a,b)=>b.m-a.m);{const ws=W.pv;xBanner(ws,'Concentración de proveedores',sub,8);let acc=0;pv.forEach(a=>{acc+=a.m;a.ac=acc/T.m});
     const cols=[{h:'#',w:6,t:'int',k:(a,j)=>j+1},{h:'Proveedor',w:46,k:a=>a.k,b:1},{h:'Gasto',w:16,t:'money',k:a=>a.m,b:1},{h:'% del total',w:11,t:'pct',k:a=>a.m/T.m},{h:'% acumulado',w:12,t:'pct',k:a=>a.ac},{h:'OC',w:9,t:'int',k:a=>a.oc.size},{h:'OT',w:9,t:'int',k:a=>a.ot.size},{h:'Ticket por OC',w:14,t:'money',k:a=>a.oc.size?a.m/a.oc.size:0},{h:`${GX.pls(lf)}`,w:13,t:'money',k:a=>a.mm[lf]}];
@@ -1662,7 +1763,7 @@ function gXlsBuild(){
       ws.set(r+1,c,val,{b:1,sz:26,fc:color,...bgc,h:'left',ind:1,nf:nf||'#,##0'}).fill(r+1,c+1,r+1,c+2,bgc).merge(r+1,c,r+1,c+2).rowH(r+1,44);
       ws.set(r+2,c,subt,{sz:9,fc:XC.mu,...bgc,h:'left',ind:1}).fill(r+2,c+1,r+2,c+2,bgc).merge(r+2,c,r+2,c+2).rowH(r+2,22)};
     const dl=RS.prevM?(RS.lastM-RS.prevM)/RS.prevM:0,m$='$#,##0';
-    tile(5,2,'GASTO ACUMULADO',RS.ytd,`${G.per[0].slice(0,4)} · ${NP-(GX.partial?1:0)} meses completos`,XC.navy,m$);
+    tile(5,2,'GASTO ACUMULADO',RS.ytd,`${GX.per[0].slice(0,4)} · ${NP-(GX.partial?1:0)} meses completos`,XC.navy,m$);
     tile(5,5,'GASTO '+GX.pln(lf).toUpperCase(),RS.lastM,`${dl>=0?'▲':'▼'} ${(dl*100).toFixed(1)}% vs ${GX.pln(lf-1)}`,dl>0?XC.rd:XC.gn,m$);
     tile(5,8,'PROMEDIO MENSUAL',RS.prom,'Meses completos',XC.blue,m$);
     tile(5,11,'ÍNDICE CORRECTIVO',RS.idxL/100,`Último mes · antes ${RS.idxP.toFixed(0)}%`,RS.idxL>RS.idxP?XC.rd:XC.gn,'0.0%');
@@ -1677,7 +1778,7 @@ function gXlsBuild(){
     ws.chart({type:'bar',title:'Top 10 sucursales por gasto',colors:['2F6BFF'],labels:true,lblFmt:'$#,##0,,"M"',gap:40,sheetRef:names.cc,series:[{name:1,nameRow:5,valCol:4+NP,catCol:1,r1:6,r2:15}]},r,8,590,300);r+=16;
     const lines=(arr,color)=>arr.forEach((t,i)=>{const L=Math.max(1,Math.ceil(t.length/118));ws.set(r,2,`${i+1}.  ${t}`,{sz:10.5,bg:XC.bg,wrap:1,h:'left',v:'center',ind:1,bd:{l:['thick',color]}}).fill(r,3,r,13,{bg:XC.bg}).merge(r,2,r,13).rowH(r,Math.max(24,17*L+8));r++;ws.rowH(r,5);r++});
     sec('HALLAZGOS');lines(hs.map(gPlain),XC.blue);r++;
-    sec('ÍNDICE DE HOJAS');const desc={mes:'Gasto, índice correctivo y OT mes a mes',cc:'Matriz sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',pv:'Concentración y ticket por proveedor',un:'500 unidades con mayor gasto y su cruce con paros',var:'Qué explica el cambio entre dos meses'};
+    sec('ÍNDICE DE HOJAS');const desc={mes:'Gasto, índice correctivo y OT mes a mes',cc:'Matriz sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',ut:'Gasto preventivo y correctivo por tipo de unidad y modelo',pv:'Concentración y ticket por proveedor',un:'500 unidades con mayor gasto y su cruce con paros',var:'Qué explica el cambio entre dos meses'};
     Object.keys(W).filter(k=>k!='res').forEach(k=>{ws.set(r,2,names[k],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,names[k],'A1');ws.set(r,4,desc[k],{sz:10,fc:XC.mu});r++});
     r++;ws.set(r,2,`Generado por el Portal Flota Inmovilizada · ${new Date().toLocaleString('es-MX')}`,{i:1,sz:9,fc:XC.mu})}
   return B}
