@@ -203,6 +203,15 @@ svg .ck{cursor:pointer}svg rect.ck:hover,svg circle.ck:hover{filter:brightness(1
 .gfn{padding:7px 16px;font-size:12px;color:var(--mu);background:var(--bg2)}.gfn b{color:var(--tx)}
 @media(max-width:640px){.gfb{border-right:0}.gfh small{display:none}}
 .gsl{min-width:150px}.gsw select{font-size:13px;padding:9px 24px 9px 10px;text-overflow:ellipsis}.gsw:after{right:8px}
+.gevg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.gevc{border:1.5px solid;border-radius:12px;padding:10px 12px;background:var(--bg2);cursor:pointer;transition:transform .12s}.gevc:hover{transform:translateY(-2px)}
+.gevh{display:flex;align-items:center;gap:8px}.gevh b{font-size:15px}.gevn{font-size:11px;color:var(--mu);font-weight:700}.gevc small{display:block;color:var(--mu);font-size:11px;margin:2px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gevl{margin-left:auto;font-size:10.5px;font-weight:800;color:#0b1020;padding:2px 8px;border-radius:999px}td .gevl{margin:0}
+.gevs,.gevb{display:inline-block;height:6px;border-radius:4px;background:var(--bd);overflow:hidden}.gevs{display:block;margin-bottom:8px}.gevb{width:60px;vertical-align:middle}.gevs i,.gevb i{display:block;height:100%}
+.gevk{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:10.5px;color:var(--mu)}.gevk b{display:block;font-size:14px;color:var(--tx)}
+.gevf{margin-top:8px;font-size:15px;display:flex;gap:4px;flex-wrap:wrap}
+.gsi{padding:9px 11px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg2);color:var(--tx);font-size:13px}.gsi:focus{border-color:var(--pr);outline:0}
+.gtabs{flex-wrap:wrap!important;overflow:visible!important}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1429,7 +1438,7 @@ function gHeat(v,ref){if(!ref||!v)return '';const r=v/ref;if(r>=1.3)return 'back
 function gSortRows(arr,key,def){const s=GS.sort[key]||def;const f=s[0],d=s[1];return arr.sort((x,y)=>{const a=f(x),b=f(y);return (typeof a=='string'?a.localeCompare(b):a-b)*d})}
 function gSortBy(key,i,def){const s=GS.sort[key];GS.sort[key]=[i,s&&s[0]===i?-s[1]:def||-1];render()}
 // ---------- renderizado principal ----------
-const GSUB=[['res','Resumen','coin'],['why','¿Por qué cambió?','trend'],['cc','Sucursales','build'],['cta','Cuentas','file'],['pc','Preventivo vs correctivo','wrench'],['ut','Tipo de unidad','truck'],['pv','Proveedores','truck'],['un','Unidades','truck'],['fl','Cruce con flota','map'],['det','Detalle','table']];
+const GSUB=[['res','Resumen','coin'],['why','¿Por qué cambió?','trend'],['cc','Sucursales','build'],['cta','Cuentas','file'],['pc','Preventivo vs correctivo','wrench'],['ut','Tipo de unidad','truck'],['pv','Proveedores','truck'],['un','Unidades','truck'],['fl','Cruce con flota','map'],['det','Detalle','table'],['ev','Evaluación','trophy']];
 function gTabs(){return `<div class="gtabs">${GSUB.map((x,i)=>`<button class="${GS.t==i?'on':''}" onclick="GS.t=${i};render();scrollTo(0,0)">${x[1]}</button>`).join('')}</div>`}
 function gEmpty(){return `<h2>Gastos de mantenimiento</h2><div class="card story">Aún no hay información de gastos cargada. El administrador puede subir el Excel <b>Gasto_Mtto_Sucursales</b> desde <b>📤 Cargar archivos</b> y este bloque se arma solo: resumen, variaciones, sucursales, cuentas, preventivo vs correctivo, proveedores, unidades y cruce con la flota.</div>`}
 function gRender(){
@@ -1437,7 +1446,7 @@ function gRender(){
   if(!GX){m.innerHTML=gEmpty();return}
   const head=`<div class="gHead"><div><h2>💰 Gastos de mantenimiento · Sucursales ${GX.per0[0].slice(0,4)}</h2><p class="sub">Facturado neto sin IVA, por fecha contable · Oracle Fusion · actualizado al ${ge(G.gen)}${GX.partial0?` · <b style="color:var(--ac)">${GX.pln0()} es parcial (corte día ${GX.genDay} de ${GX.dm})</b>`:''}</p></div><button class="gxl" onclick="gXls()">📊 Excel ejecutivo de gastos</button></div>${gTabs()}${gFilters()}`;
   if(!GX.R.length){m.innerHTML=head+'<div class="card story">No hay gasto con esos filtros. Prueba ampliando el periodo o quitando algún filtro.</div>';return}
-  const fn=[gRes,gWhy,gCC,gCta,gPC,gUt,gPv,gUn,gFl,gDet][GS.t];
+  const fn=[gRes,gWhy,gCC,gCta,gPC,gUt,gPv,gUn,gFl,gDet,gEv][GS.t];
   let o='';try{o=fn()}catch(e){console.error(e);o='<div class="card">Error al armar esta vista: '+ge(e.message)+'</div>'}
   m.innerHTML=head+o;
 }
@@ -1878,6 +1887,61 @@ function gaStory(){const s=gaSnap();if(!s||s.lf<1)return null;const up=s.dL>=0,m
  const c0=s.ct[0];return{k:'EL GASTO',t:`${gC(s.pl)} gastó ${gm(s.lastM)} en mantenimiento, ${gp(s.dL)} contra ${s.pp}`,
   b:`El gasto ${up?'subió':'bajó'} ${gm(Math.abs(s.lastM-s.prevM))}. El correctivo pesa ${s.idxL.toFixed(0)}% del total${s.idxL>s.idxP?' (antes '+s.idxP.toFixed(0)+'%)':''}.${c0?` El concepto con más gasto fue ${c0.k} (${gm(c0.m)}).`:''} Acumulado del año: ${gm(s.ytd)}.`,
   v:nwBars(mm),a:['Ver por qué cambió el gasto','GS.t=1;go(14)']}}
+
+// ====== Evaluación de móviles (gasto + paros + recurrencia) ======
+const GEV_W=[['m','Gasto acumulado',25],['cd','Costo por día operado',15],['dd','Días detenida',20],['ev','Veces detenida (recurrencia)',15],['fr','Misma falla repetida',10],['ix','% correctivo',5],['vm','Gasto vs su modelo',10]];
+function gEvPeriod(){const a=GX.per[0]+'-01',lp=GX.per[GX.per.length-1],y=+lp.slice(0,4),m=+lp.slice(5),nx=m==12?(y+1)+'-01-01':y+'-'+String(m+1).padStart(2,'0')+'-01';let b=addDays(nx,-1);if(b>TODAY)b=TODAY;return{a,b,n:diffDays(a,b)+1}}
+function gEvData(mode){const P=gEvPeriod(),ev=GS.ev||(GS.ev={mode:'pc',q:'',lv:'',n:50});
+ const rs=GX.R.filter(r=>r.un&&(mode=='all'||(mode=='pc'?r.tp<2:r.tp==+mode)));
+ const un=gagg(rs,r=>r.un),meta={};rs.forEach(r=>{const o=meta[r.un]||(meta[r.un]={d:r.und,md:r.md,ut:r.ut,c:{}});o.c[r.cc]=(o.c[r.cc]||0)+r.m});
+ const E={};D.forEach(r=>{const k=String(r[11]||'').trim();if(!k)return;const d=daysIn(r,P.a,P.b);const o=E[k]||(E[k]={n:0,nh:0,d:0,hoy:false,f:{},suc:r[1]});o.nh++;if(d>0){o.n++;o.d+=d;const f=r[5]||'Sin dato';o.f[f]=(o.f[f]||0)+1}if(r[6])o.hoy=true});
+ const PV={};try{PREV.forEach(p=>{const k=String(p.mov||'').trim();if(k)PV[k]=(PV[k]||0)+1})}catch(e){}
+ const RN={};try{if(typeof ALL=='function')ALL().filter(x=>vig(x)).forEach(x=>{const k=String(x.mov||'').trim();const o=RN[k]||(RN[k]={n:0,g:0});o.n++;o.g+=x.total||0})}catch(e){}
+ const L=un.map(a=>{const mt=meta[a.k],e=E[a.k]||{n:0,nh:0,d:0,hoy:false,f:{}},pr=a.tp[0],co=a.tp[1],base=pr+co+(mode=='all'?a.tp[2]:0),dd=Math.min(e.d,P.n),op=Math.max(0,P.n-dd),fl=Object.entries(e.f).sort((x,y)=>y[1]-x[1]);
+  const rep=fl.filter(x=>x[1]>=2);return{k:a.k,desc:mt.d,md:mt.md,ut:mt.ut,cc:Object.entries(mt.c).sort((x,y)=>y[1]-x[1])[0][0],m:a.m,pr,co,sn:a.tp[2],ix:pr+co?co/(pr+co)*100:0,ot:a.ot.size,dd,op,cd:op?a.m/op:a.m,cdc:a.m/P.n,ev:e.n,evh:e.nh,hoy:e.hoy,fp:fl[0]?fl[0][0]:'–',fl:fl,rep:rep.length,repN:rep.reduce((s,x)=>s+x[1],0),pv:PV[a.k]||0,rn:RN[a.k]?RN[a.k].n:0,rg:RN[a.k]?RN[a.k].g:0}});
+ // mediana por modelo
+ const by={};L.forEach(u=>(by[u.md]=by[u.md]||[]).push(u.m));const med=v=>{v=v.slice().sort((a,b)=>a-b);return v[v.length>>1]};
+ L.forEach(u=>{const v=by[u.md];u.vm=v.length>=5?u.m/(med(v)||1):null;u.nm=v.length});
+ // percentiles → puntaje 0-100
+ const pr=(arr,f)=>{const s=arr.map(f).sort((a,b)=>a-b),n=s.length;return u=>{const x=f(u);let lo=0,hi=n;while(lo<hi){const m=(lo+hi)>>1;if(s[m]<x)lo=m+1;else hi=m}return n>1?lo/(n-1):0}};
+ const F={m:pr(L,u=>u.m),cd:pr(L,u=>u.cd),dd:pr(L,u=>u.dd),ev:pr(L,u=>u.ev),fr:pr(L,u=>u.repN),ix:pr(L,u=>u.ix),vm:pr(L,u=>u.vm==null?1:u.vm)};
+ const p90=(f)=>{const s=L.map(f).sort((a,b)=>a-b);return s[Math.floor(s.length*.9)]||0},gT=p90(u=>u.m),cT=p90(u=>u.cd);
+ L.forEach(u=>{u.sc=GEV_W.reduce((s,[k,,w])=>s+w*F[k](u),0);u.flags=[];
+  if(u.m>=gT)u.flags.push(['💸','Gasto entre el 10% más alto']);if(u.cd>=cT)u.flags.push(['📆','Costo por día operado entre el 10% más alto']);if(u.dd>=30)u.flags.push(['⏱️',u.dd+' días detenida en el periodo']);if(u.ev>=3)u.flags.push(['🔁',u.ev+' veces detenida']);
+  if(u.rep)u.flags.push(['🔧','Misma falla repetida: '+u.fl.filter(x=>x[1]>=2).map(x=>x[0]+' ×'+x[1]).join(', ')]);if(u.hoy)u.flags.push(['🟥','Detenida hoy']);if(u.vm!=null&&u.vm>=2)u.flags.push(['📈','Gasta '+u.vm.toFixed(1)+'× la mediana de su modelo']);if(u.ix>=85&&u.m>=gT/3)u.flags.push(['🛠️','Casi todo su gasto es correctivo ('+u.ix.toFixed(0)+'%)']);
+  const nf=u.flags.length;u.lv=((nf>=5&&u.sc>=70)||u.sc>=88)?'Crítico':((nf>=3&&u.sc>=60)||u.sc>=72)?'Problema':(nf>=2||u.sc>=55)?'Vigilar':'Normal'});
+ L.sort((a,b)=>b.sc-a.sc);return{L,P,gT,cT,ev}}
+const GEVC={'Crítico':'#ff5d6c','Problema':'#ff9f43','Vigilar':'#f5c542','Normal':'#36d08a'};
+function gEvSet(k,v){GS.ev=GS.ev||{mode:'pc',q:'',lv:'',n:50};GS.ev[k]=v;render()}
+function gEv(){const ev=GS.ev||(GS.ev={mode:'pc',q:'',lv:'',n:50}),{L,P,gT,cT}=gEvData(ev.mode);
+ if(!L.length)return `<h2 style="margin-top:6px">Evaluación de móviles</h2><div class="card gwarn">No hay unidades con gasto en esa selección.</div>`;
+ const tot=L.reduce((s,u)=>s+u.m,0),prob=L.filter(u=>u.lv=='Crítico'||u.lv=='Problema'),pm=prob.reduce((s,u)=>s+u.m,0),cnt=l=>L.filter(u=>u.lv==l).length;
+ const cdp=L.reduce((s,u)=>s+u.m,0)/Math.max(1,L.reduce((s,u)=>s+u.op,0)),w=L[0];
+ const modes=[['pc','Preventivo + correctivo'],['0','Solo preventivo'],['1','Solo correctivo'],['all','Todo (incluye sin OT)']];
+ let V=L.filter(u=>(!ev.lv||u.lv==ev.lv)&&(!ev.q||(u.k+' '+u.desc+' '+u.md).toLowerCase().includes(ev.q.toLowerCase())));
+ const s=GS.sort.ev||[11,-1];const cols=[u=>u.k,u=>u.m,u=>u.pr,u=>u.co,u=>u.ix,u=>u.op,u=>u.cd,u=>u.dd,u=>u.ev,u=>u.fp,u=>u.vm==null?-1:u.vm,u=>u.sc];
+ V=V.slice().sort((a,b)=>{const f=cols[s[0]]||cols[11],x=f(a),y=f(b);return(typeof x=='string'?x.localeCompare(y):x-y)*s[1]});
+ const sh=(i,l,tt)=>`<th title="${tt||''}" onclick="gSortBy('ev',${i},-1)">${l}${s[0]===i?(s[1]<0?' ▼':' ▲'):''}</th>`;
+ const card=(u,i)=>`<div class="gevc" onclick="gOpen('un','${gq(u.k)}')" style="border-color:${GEVC[u.lv]}"><div class="gevh"><span class="gevn">#${i+1}</span><b>${ge(u.k)}</b><span class="gevl" style="background:${GEVC[u.lv]}">${u.lv}</span></div><small>${ge(u.desc||u.md)} · ${ge(GX.CCN[u.cc]||u.cc)}</small>
+  <div class="gevs"><i style="width:${u.sc}%;background:${GEVC[u.lv]}"></i></div><div class="gevk"><div><b>${gm(u.m)}</b>gasto</div><div><b>${gf(u.cd)}</b>por día operado</div><div><b>${u.dd}</b>días detenida</div><div><b>${u.ev}</b>veces detenida</div></div><div class="gevf">${u.flags.slice(0,6).map(f=>`<span title="${ge(f[1])}">${f[0]}</span>`).join('')}</div></div>`;
+ // modelos peor evaluados
+ const mm={};L.forEach(u=>{const o=mm[u.md]||(mm[u.md]={k:u.md,n:0,m:0,dd:0,pb:0,ev:0});o.n++;o.m+=u.m;o.dd+=u.dd;o.ev+=u.ev;if(u.lv=='Crítico'||u.lv=='Problema')o.pb++});
+ const MD=Object.values(mm).filter(x=>x.n>=3).sort((a,b)=>b.pb/b.n-a.pb/a.n||b.m/b.n-a.m/a.n).slice(0,8);
+ const fc={};prob.forEach(u=>u.fl.forEach(([k,n])=>fc[k]=(fc[k]||0)+n));const FC=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,8),fmx=FC[0]?FC[0][1]:1;
+ const body=V.slice(0,ev.n).map((u,i)=>`<tr class="ck" onclick="gOpen('un','${gq(u.k)}')"><td>${i+1}</td><td><b>${ge(u.k)}</b></td><td>${ge(u.desc||u.md)}</td><td>${ge(u.cc)}</td><td>${gf(u.m)}</td><td>${gf(u.pr)}</td><td>${gf(u.co)}</td><td>${u.ix.toFixed(0)}%</td><td>${u.op}</td><td>${gf(u.cd)}</td><td>${u.dd}</td><td>${u.ev}${u.evh>u.ev?` <small style="color:var(--mu)">(${u.evh} hist.)</small>`:''}</td><td>${ge(u.fp)}${u.rep?` <span class="pill r" title="falla repetida">×${u.repN}</span>`:''}</td><td>${u.vm==null?'<span class="nd">–</span>':u.vm.toFixed(1)+'×'}</td><td>${u.hoy?'<b class="pill r">Hoy</b>':''}</td><td><span class="gevb"><i style="width:${u.sc}%;background:${GEVC[u.lv]}"></i></span> <b>${u.sc.toFixed(0)}</b></td><td><span class="gevl" style="background:${GEVC[u.lv]}">${u.lv}</span></td><td onclick="event.stopPropagation();openHist('${ge(u.k)}')" title="Historial de paros" style="cursor:pointer">🔎</td></tr>`).join('');
+ return `<h2 style="margin-top:6px">Evaluación de móviles</h2><p class="sub">Ranking de unidades por gasto ${GX.per[0].slice(0,4)} combinado con paros, recurrencia y fallas para detectar los <b>móviles problema</b>. Periodo evaluado: ${P.a} a ${P.b} (${P.n} días).</p>
+ <div class="card gfil" style="margin-bottom:12px"><div class="gfh"><span class="gfi">🏆</span><div><b>CONSIDERAR EN EL GASTO</b><small>Elige qué parte del gasto se suma para evaluar y ordenar</small></div><button class="gxl" onclick="gEvXls()">📊 Excel de evaluación</button></div><div class="gfb" style="border:0"><div class="gfq gseg" style="margin:0">${modes.map(([v,l])=>`<span class="chip ${ev.mode==v?'on':''}" onclick="gEvSet('mode','${v}')">${l}</span>`).join('')}</div>
+ <div class="gfd" style="margin-top:10px;align-items:flex-end"><label class="gsl" style="max-width:260px"><small>Buscar móvil o modelo</small><input class="gsi" value="${ge(ev.q)}" placeholder="Ej. M002161, Hino, Cascadia" onchange="gEvSet('q',this.value)"></label><div class="gfq" style="margin:0 0 2px"><b style="font-size:11px;color:var(--mu);align-self:center">Nivel</b>${['','Crítico','Problema','Vigilar','Normal'].map(l=>`<span class="chip ${ev.lv==l?'on':''}" onclick="gEvSet('lv','${l}')">${l||'Todos'}${l?' ('+cnt(l)+')':''}</span>`).join('')}</div></div></div></div>
+ <div class="grid g4">${gKpi(fmt(L.length),'móviles evaluados','',gm(tot)+' de gasto')}${gKpi(fmt(cnt('Crítico')+cnt('Problema')),'móviles problema','r',`${cnt('Crítico')} críticos · ${cnt('Problema')} en problema`)}${gKpi((pm/tot*100).toFixed(0)+'%','del gasto está en móviles problema','a',`${gm(pm)} en ${prob.length} unidades`)}${gKpi(gf(cdp),'costo por día operado (promedio)','',`peor: ${ge(w.k)} · ${gf(w.cd)}/día`)}</div>
+ <div class="card story" style="margin-top:12px">La unidad peor evaluada es <b>${ge(w.k)}</b> (${ge(w.desc||w.md)}, ${ge(GX.CCN[w.cc]||w.cc)}): gastó <b>${gm(w.m)}</b> (${gm(w.co)} correctivo), estuvo <b>${w.dd} días detenida</b> en ${w.ev} ocasiones y operó ${w.op} días, a <b>${gf(w.cd)}</b> por día operado. ${w.flags.length?'Señales: '+w.flags.map(f=>ge(f[1])).join('; ')+'.':''} ${prob.length} móviles concentran el <b>${(pm/tot*100).toFixed(0)}%</b> del gasto evaluado.</div>
+ <div class="card" style="margin-top:12px"><h3>🚨 Los 12 peor evaluados <small style="color:var(--mu);font-weight:400">· clic para ver el desglose de su gasto</small></h3><div class="gevg">${L.slice(0,12).map(card).join('')}</div></div>
+ <div class="grid g2" style="margin-top:12px"><div class="card"><h3>Modelos con más móviles problema</h3>${MD.length?MD.map(x=>`<div class="br ck" onclick="gOpen('md','${gq(x.k)}')"><span title="${ge(x.k)}">${ge(x.k)}</span><i style="width:${100*x.pb/Math.max(1,MD[0].pb)}%;background:#ff9f43"></i><em>${x.pb}/${x.n} · ${gm(x.m/x.n)} c/u</em></div>`).join(''):'<span class="nd">Sin modelos con 3 o más unidades</span>'}<p class="note">Problema+crítico sobre unidades del modelo con gasto · gasto promedio por unidad.</p></div>
+ <div class="card"><h3>Fallas que más repiten los móviles problema</h3>${FC.map(([k,n])=>`<div class="br"><span title="${ge(k)}">${ge(k)}</span><i style="width:${100*n/fmx}%;background:#8b5cf6"></i><em>${n}</em></div>`).join('')||'<span class="nd">Sin datos</span>'}</div></div>
+ <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Evaluación completa · ${fmt(V.length)} móviles <small style="color:var(--mu);font-weight:400">· clic en encabezado para ordenar</small></h3><div style="overflow-x:auto;max-height:75vh"><table class="gtb"><tr><th>#</th>${sh(0,'Móvil')}<th>Descripción</th><th>Suc.</th>${sh(1,'Gasto')}${sh(2,'Prev.')}${sh(3,'Corr.')}${sh(4,'% corr.')}${sh(5,'Días operó','Días del periodo menos días detenida')}${sh(6,'$ / día operado','Gasto ÷ días que operó')}${sh(7,'Días detenida')}${sh(8,'Veces detenida')}${sh(9,'Falla principal')}${sh(10,'vs modelo','Gasto ÷ mediana de unidades del mismo modelo')}<th>Hoy</th>${sh(11,'Puntaje','0 a 100: mayor = peor')}<th>Nivel</th><th></th></tr>${body}</table></div>
+ ${V.length>ev.n?`<p class="note" style="padding:8px 14px"><a href="javascript:gEvSet('n',${ev.n>=500?50:Math.min(V.length,ev.n+100)})">${ev.n>=500?'Mostrar menos':'Mostrar más'}</a> · mostrando ${ev.n} de ${V.length}</p>`:''}</div>
+ <div class="card" style="margin-top:12px"><h3>¿Cómo se calcula el puntaje?</h3><p class="note">Cada unidad se compara con las demás por percentil (0 = la mejor, 1 = la peor) y se pondera: ${GEV_W.map(x=>x[1]+' '+x[2]+'%').join(' · ')}. <b>Días operó</b> = días del periodo − días detenida (según el seguimiento de inmovilizados). <b>$ / día operado</b> = gasto ÷ días operó. <b>Nivel</b>: Crítico (5+ señales y puntaje ≥70, o puntaje ≥88), Problema (3+ señales y puntaje ≥60, o puntaje ≥72), Vigilar (2+ señales o puntaje ≥55). Señales: gasto o costo diario en el 10% más alto, 30+ días detenida, 3+ paros, misma falla repetida, detenida hoy, 2× la mediana de su modelo y casi todo correctivo. No se conoce la fecha de alta de cada unidad, así que una unidad que entró a mitad de año aparece con más días operados de los reales.</p></div>`}
+function gEvXls(){try{const ev=GS.ev||{mode:'pc'},{L,P}=gEvData(ev.mode);const rows=L.map((u,i)=>({'#':i+1,Móvil:u.k,Descripción:u.desc||u.md,Modelo:u.md,'Tipo de unidad':u.ut,Sucursal:GX.CCN[u.cc]||u.cc,Gasto:Math.round(u.m),Preventivo:Math.round(u.pr),Correctivo:Math.round(u.co),'% correctivo':+u.ix.toFixed(1),OT:u.ot,'Días del periodo':P.n,'Días detenida':u.dd,'Días operó':u.op,'Costo por día operado':Math.round(u.cd),'Costo por día calendario':Math.round(u.cdc),'Veces detenida (periodo)':u.ev,'Veces detenida (histórico)':u.evh,'Falla principal':u.fp,'Fallas repetidas':u.rep,'Gasto vs mediana modelo':u.vm==null?'':+u.vm.toFixed(2),Preventivos:u.pv,'Rentas sustitutas':u.rn,'Detenida hoy':u.hoy?'Sí':'No',Puntaje:+u.sc.toFixed(1),Nivel:u.lv,Señales:u.flags.map(f=>f[1]).join(' | ')}));
+ XW.save(XW.simple(rows,'Evaluación','Evaluación de móviles · '+({pc:'Preventivo + correctivo','0':'Solo preventivo','1':'Solo correctivo',all:'Todo el gasto'})[ev.mode],L.length+' móviles · '+P.a+' a '+P.b),'Evaluacion_Moviles.xlsx')}catch(e){console.error(e);alert('No se pudo generar el Excel: '+e.message)}}
 
 // ====== Excel ejecutivo del bloque Gastos ======
 function gPlain(h){return String(h).replace(/<a [^>]*>[^<]*<\/a>/g,'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&')}
