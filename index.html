@@ -416,7 +416,7 @@ function buildFleet(inv){
     Fo[pref]=Fo[pref]||[0,null];Fo[pref][0]++;
     if(ecoI>=0&&r[ecoI]!=null&&String(r[ecoI]).trim()!=='')FUo[String(r[ecoI]).trim()]=[desc,suc,tipoI>=0&&r[tipoI]!=null?String(r[tipoI]):''];
   }
-  buildFleet.ecoCol=ecoI>=0?H[ecoI]:null;
+  buildFleet.ecoCol=ecoI>=0?H[ecoI]:null;buildFleet.tipoCol=tipoI>=0?H[tipoI]:null;
   Object.keys(Fo).forEach(k=>{Fo[k][1]=modeEs(byPref[k])});
   return {Fo,FDo,FUo};
 }
@@ -1372,7 +1372,11 @@ function gInit(){
     const inv=r.un?FUm[r.un]:null;r.erp=nrm(r.und);
     r.src=inv?'inv':r.erp?'erp':(r.un&&DM[r.un])?'seg':'none';
     r.dsc=nrm(inv?inv[0]:r.erp?r.erp:(r.un&&DM[r.un])?DM[r.un]:'')});
-  X.R0.forEach(r=>{r.md=r.dsc||'SIN DESCRIPCIÓN';r.ut=r.md=='SIN DESCRIPCIÓN'?'Sin identificar':gCat(r.md)});
+  // tipo de unidad: 1) el "tipo" del inventario cargado; 2) si el económico no está en el inventario (o no trae tipo), la descripción tal como viene en la base de gasto
+  const UTC={};let nTipo=0;Object.keys(FUm).forEach(k=>{const t=String(FUm[k][2]||'').trim();if(t){nTipo++;const u=nrm(t);if(!UTC[u])UTC[u]=t}});X.nTipo=nTipo;
+  X.R0.forEach(r=>{r.md=r.dsc||'SIN DESCRIPCIÓN';const inv=r.un?FUm[r.un]:null,tI=inv&&inv[2]?String(inv[2]).trim():'';
+    if(tI){r.ut=UTC[nrm(tI)]||tI;r.uts='inv'}
+    else{r.uts='erp';r.ut=r.md=='SIN DESCRIPCIÓN'?'Sin identificar':(nTipo?r.md:gCat(r.md))}});
   // flota del inventario por modelo (los nombres del inventario coinciden con los de los modelos)
   const FDup={};try{Object.keys(FD).forEach(k=>FDup[nrm(k)]=FD[k])}catch(e){}
   X.mdMap={};Object.keys(FDup).forEach(k=>X.mdMap[k]=k);
@@ -1408,14 +1412,14 @@ function gFilters(){
   const X=GX,f=GS.f,N0=X.per0.length,pl0=i=>GMES[+X.per0[i].slice(5)-1]+' '+X.per0[i].slice(2,4);
   const opt=sel=>X.per0.map((p,i)=>`<option value="${i}" ${i==sel?'selected':''}>${pl0(i)}${X.partial0&&i==N0-1?' (parcial)':''}</option>`).join('');
   const tk=gTpKey(f.tp),tc=[['','Todo el gasto'],['0','Preventivo'],['1','Correctivo'],['0,1','Preventivo + correctivo'],['2','Sin OT']];
-  const regs=[...new Set(X.R0.map(r=>r.rg))].sort(),uts=[...new Set(X.R0.map(r=>r.ut))].sort();
+  const regs=[...new Set(X.R0.map(r=>r.rg))].sort(),utI=[...new Set(X.R0.filter(r=>r.uts=='inv').map(r=>r.ut))].sort(),utE=[...new Set(X.R0.filter(r=>r.uts!='inv').map(r=>r.ut))].filter(x=>!utI.includes(x)).sort();
   const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut;
   const nAct=(f.from>0||f.to<N0-1?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0);
   const sel=(lbl,onch,body,on)=>`<label class="gsl${on?' on':''}"><small>${lbl}</small><span class="gsw"><select onchange="${onch}">${body}</select></span></label>`;
   return `<div class="card gfil"><div class="gfh"><span class="gfi">⚙</span><div><b>FILTROS</b><small>Elige qué quieres ver: todas las pestañas se ajustan a tu selección</small></div><span class="gfc">${nAct?nAct+' activo'+(nAct>1?'s':''):'sin filtros'}</span>${act?'<button class="gfx" onclick="gClean()">✕ Quitar filtros</button>':''}</div>
   <div class="gfg"><div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>
   <div class="gfb"><h4>💲 Tipo de gasto</h4><div class="gfq gseg">${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div></div>
-  <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${uts.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.ut)}</div></div></div>
+  <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${utI.length?`<optgroup label="Del inventario cargado">${utI.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}${utE.length?`<optgroup label="${utI.length?'No están en el inventario (descripción de la base de gasto)':'Descripción en la base de gasto'}">${utE.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}`,!!f.ut)}</div></div></div>
   <div class="gfn">Mostrando <b>${fmt(X.R.length)}</b> de ${fmt(X.R0.length)} líneas · <b>${gm(X.R.reduce((a,r)=>a+r.m,0))}</b></div></div>`}
 function gFiltTxt(){const X=GX,f=GS.f,N0=X.per0.length,a=[];a.push(X.pl(0)+(X.NP>1?' a '+X.pl(X.NP-1):''));const tk=gTpKey(f.tp);if(tk)a.push({'0':'Preventivo','1':'Correctivo','0,1':'Preventivo + correctivo','2':'Sin OT'}[tk]||'');if(f.rg)a.push('Región '+f.rg);if(f.ut)a.push(f.ut);return a.join(' · ')}
 // ---------- utilidades ----------
@@ -2308,7 +2312,7 @@ async function procesarArchivos(){
       const {Fo,FDo,FUo}=buildFleet(aoa);
       if(!Object.keys(Fo).length)throw new Error('No se encontraron filas válidas en el inventario.');
       F=Fo;FD=FDo;FU=FUo;
-      st.textContent+='\n✓ Inventario: '+Object.values(F).reduce((a,b)=>a+b[0],0)+' unidades, '+Object.keys(F).length+' sucursales'+(Object.keys(FU).length?' · '+Object.keys(FU).length+' económicos enlazables (columna "'+buildFleet.ecoCol+'")':'\n⚠ No encontré la columna del número económico en el inventario (busqué ECONOMICO, MOVIL, UNIDAD, ACTIVO). Dime cómo se llama para enlazarla con Gastos.');
+      st.textContent+='\n✓ Inventario: '+Object.values(F).reduce((a,b)=>a+b[0],0)+' unidades, '+Object.keys(F).length+' sucursales'+(Object.keys(FU).length?' · '+Object.keys(FU).length+' económicos enlazables (columna "'+buildFleet.ecoCol+'")'+(buildFleet.tipoCol?' · tipo de unidad desde la columna "'+buildFleet.tipoCol+'"':'\n⚠ No encontré la columna del TIPO de unidad (busqué TIPO, TIPO DE UNIDAD, CLASE, CATEGORIA). Dime cómo se llama para usarla en Gastos.'):'\n⚠ No encontré la columna del número económico en el inventario (busqué ECONOMICO, MOVIL, UNIDAD, ACTIVO). Dime cómo se llama para enlazarla con Gastos.');
     }
     if(fGas)await gLoadFile(fGas,st);
     f=freshFilters();refreshDerived();cur=(fGas&&!fInv&&!fSeg)?GT:0;go(cur);
