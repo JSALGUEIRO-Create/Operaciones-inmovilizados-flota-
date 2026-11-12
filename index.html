@@ -183,6 +183,8 @@ table.gtb td:first-child,table.gtb th:first-child{position:sticky;left:0;backgro
 .gmc i{display:block;width:70%;background:var(--pr);border-radius:4px 4px 0 0}.gmc em{font-style:normal;font-size:9.5px;font-weight:700}.gmc span{font-size:10px;color:var(--mu)}.gmc:hover{background:rgba(79,140,255,.12)}.gmc.on{background:rgba(255,171,61,.2)}.gmc.on i{background:var(--ac)}
 .gmact{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
 svg .ck{cursor:pointer}svg rect.ck:hover,svg circle.ck:hover{filter:brightness(1.25)}
+
+.gnar p{margin:0 0 9px}.gnar p:last-child{margin:0}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1467,6 +1469,40 @@ function gRes(){
 // salta a "¿Por qué cambió?" filtrando un miembro
 function gGo(dim,key){GS.fl={};GS.fl[dim]=key;GS.dim=dim=='cc'?'ctn':dim=='ctn'?'cc':dim=='pv'?'cc':dim=='un'?'ctn':(dim=='md'||dim=='ut')?'cc':'cc';GS.t=1;render();scrollTo(0,0)}
 function gClr(k){if(k)delete GS.fl[k];else GS.fl={};render()}
+// ---- narrativa profunda de "¿Por qué cambió?" ----
+function gMov(rs,kf,A,B){const m=new Map();for(const r of rs){if(r.p!=A&&r.p!=B)continue;const k=kf(r);let o=m.get(k);if(!o){o={k,a:0,b:0,oa:new Set(),ob:new Set(),tp:[0,0,0]};m.set(k,o)}const s=r.p==B?1:-1;if(s>0){o.b+=r.m;if(r.ot>=0)o.ob.add(r.ot)}else{o.a+=r.m;if(r.ot>=0)o.oa.add(r.ot)}o.tp[r.tp]+=s*r.m}
+ return [...m.values()].map(o=>({...o,d:o.b-o.a,na:o.oa.size,nb:o.ob.size}))}
+function gNarr(rs,A,B,dimKey){
+ const dd=GDIM,T=gtot(rs),ma=T.mm[A],mb=T.mm[B],d=mb-ma,up=d>=0,sg=x=>(x>=0?'+':'−')+gm(Math.abs(x));
+ const na=T.mo[A].size,nb=T.mo[B].size,aa=na?T.mc[A]/na:0,ab=nb?T.mc[B]/nb:0,volE=(nb-na)*aa,rateE=nb*(ab-aa),sinE=(mb-T.mc[B])-(ma-T.mc[A]);
+ const tp=[0,1,2].map(t=>{let a=0,b=0;rs.forEach(r=>{if(r.tp==t){if(r.p==A)a+=r.m;else if(r.p==B)b+=r.m}});return{a,b,d:b-a}});
+ const col=x=>x>0?'var(--rd)':'var(--gn)',B_=(t,c)=>`<b style="color:${c}">${t}</b>`;
+ const nmC=k=>ge(GX.CCN[k]||k),nm=(dk,k)=>ge(dd[dk][2](k));
+ // 1 titular
+ let h=`<p><b>${gC(GX.pln(B))}</b> gastó <b>${gm(mb)}</b> contra <b>${gm(ma)}</b> de ${GX.pln(A)}: ${up?'subió':'bajó'} <b>${gm(Math.abs(d))}</b> (${ma?gp(d/ma*100):'–'}).</p>`;
+ // 2 preventivo vs correctivo
+ const tot=Math.abs(tp[0].d)+Math.abs(tp[1].d)+Math.abs(tp[2].d)||1,ia=gIdx(gMt(rs.filter(r=>r.p==A||r.p==B)),A),ib=gIdx(gMt(rs.filter(r=>r.p==A||r.p==B)),B);
+ const part=(t,l)=>`${l} ${B_(sg(tp[t].d),col(tp[t].d))} (${gm(tp[t].a)} → ${gm(tp[t].b)})`;
+ h+=`<p><b>Preventivo vs correctivo.</b> ${part(0,'El preventivo')}, ${part(1,'el correctivo')}${Math.abs(tp[2].d)>1000?` y ${part(2,'el gasto sin OT')}`:''}. `
+  +`${Math.abs(tp[1].d)>=Math.abs(tp[0].d)?'El correctivo':'El preventivo'} concentra el <b>${(100*Math.max(Math.abs(tp[1].d),Math.abs(tp[0].d))/tot).toFixed(0)}%</b> del movimiento. El índice correctivo pasó de <b>${ia.toFixed(0)}%</b> a <b>${ib.toFixed(0)}%</b>${ib>ia+1?': el mantenimiento se volvió más reactivo.':ib<ia-1?': el mantenimiento se volvió más preventivo.':': prácticamente igual.'}</p>`;
+ // 3 por concepto (cuenta)
+ const cts=gMov(rs,r=>r.ctn,A,B).sort((x,y)=>Math.abs(y.d)-Math.abs(x.d)),upC=cts.filter(x=>(up?x.d>0:x.d<0)).slice(0,3),opC=cts.filter(x=>(up?x.d<0:x.d>0)).slice(0,2);
+ const cdesc=x=>`<b>${nm('ctn',x.k)}</b> ${B_(sg(x.d),col(x.d))} (${gm(x.a)} → ${gm(x.b)}${x.na||x.nb?`; ${x.na} → ${x.nb} OT`:''})`;
+ const sumTop=upC.reduce((a,x)=>a+x.d,0);
+ if(upC.length)h+=`<p><b>Por concepto (cuenta).</b> ${up?'Lo que más absorbió gasto':'Lo que más gasto liberó'}: ${upC.map(cdesc).join('; ')}. ${d&&Math.abs(sumTop/d)<=1.05?`Juntos explican el <b>${(100*sumTop/d).toFixed(0)}%</b> de la diferencia.`:''}${opC.length?` En sentido contrario, ${up?'bajó':'subió'} ${opC.map(cdesc).join('; ')}.`:''}</p>`;
+ // 4 por sucursal con su concepto y sus OT
+ const ccs=gMov(rs,r=>r.cc,A,B).sort((x,y)=>Math.abs(y.d)-Math.abs(x.d)),upS=ccs.filter(x=>(up?x.d>0:x.d<0)).slice(0,3),opS=ccs.filter(x=>(up?x.d<0:x.d>0)).slice(0,2);
+ const sdesc=x=>{const c=gMov(rs.filter(r=>r.cc==x.k),r=>r.ctn,A,B).sort((p,q)=>Math.abs(q.d)-Math.abs(p.d))[0];const pc=x.tp[1],pp=x.tp[0];
+  return `<b>${nmC(x.k)}</b> ${B_(sg(x.d),col(x.d))} (${x.na} → ${x.nb} OT; correctivo ${sg(pc)}, preventivo ${sg(pp)}${c?`; su concepto principal fue ${ge(gTitle(c.k))} ${sg(c.d)}`:''})`};
+ const sTop=upS.reduce((a,x)=>a+x.d,0);
+ if(upS.length&&!GS.fl.cc)h+=`<p><b>Por sucursal.</b> ${up?'Las que más empujaron':'Las que más bajaron'}: ${upS.map(sdesc).join('; ')}. ${upS.length>1&&d&&Math.abs(sTop/d)<=1.05?`Entre las ${upS.length} suman el <b>${(100*sTop/d).toFixed(0)}%</b> del cambio.`:''}${opS.length?` En contra: ${opS.map(x=>`<b>${nmC(x.k)}</b> ${B_(sg(x.d),col(x.d))} (${x.na} → ${x.nb} OT)`).join('; ')}.`:''}</p>`;
+ // 5 proveedor
+ const pvs=gMov(rs,r=>r.pv,A,B).sort((x,y)=>Math.abs(y.d)-Math.abs(x.d)).filter(x=>(up?x.d>0:x.d<0)).slice(0,2);
+ if(pvs.length)h+=`<p><b>Por proveedor.</b> ${pvs.map(x=>`<b>${nm('pv',x.k)}</b> ${B_(sg(x.d),col(x.d))} (${gm(x.a)} → ${gm(x.b)}, ${x.na} → ${x.nb} OT)`).join('; ')}.</p>`;
+ // 6 volumen vs costo
+ if(na&&nb)h+=`<p><b>Volumen vs costo.</b> Se atendieron <b>${nb}</b> OT contra <b>${na}</b> (${gp(gDelta(na,nb))}) y el costo promedio por OT pasó de <b>${gf(aa)}</b> a <b>${gf(ab)}</b> (${gp(gDelta(aa,ab))}). Por <b>más/menos órdenes</b> ${sg(volE)}, por <b>órdenes más caras/baratas</b> ${sg(rateE)}${Math.abs(sinE)>1000?` y por gasto sin OT ${sg(sinE)}`:''}. ${Math.abs(volE)>Math.abs(rateE)?'El cambio se debe principalmente a la <b>cantidad de servicios</b>, no a su precio.':'El cambio se debe principalmente al <b>costo de cada servicio</b>, no a la cantidad.'}</p>`;
+ return h}
+
 // ---------- 2 · ¿POR QUÉ CAMBIÓ? ----------
 function gWhy(){
   if(GX.NP<2)return `<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><div class="card gwarn">Para comparar necesitas un periodo de al menos 2 meses. Ajusta <b>Desde / hasta</b> arriba (por ejemplo "Todo el año").</div>`;
@@ -1504,7 +1540,7 @@ function gWhy(){
   return `<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><p class="sub">Elige dos meses y la dimensión: el portal descompone la diferencia en quién la causó, y si fue por más órdenes de trabajo o por órdenes más caras.</p>
   <div class="fbar"><b>Mes base</b>${monthSel('a',A)}<b>vs</b>${monthSel('b',B)}<span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-1);GS.b=GX.lastFull;render()">Último mes vs anterior</span><span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-2);GS.b=GX.lastFull;render()">Último vs hace 2 meses</span></div>
   <div class="fbar"><b>Explicar por</b>${Object.keys(GDIM).map(k=>`<span class="chip ${GS.dim==k?'on':''}" onclick="GS.dim='${k}';render()">${GDIM[k][0]}</span>`).join('')}</div>${crumb}${warn}
-  <div class="card story" style="margin-top:8px">${nar}</div>
+  <div class="card story gnar" style="margin-top:8px">${gNarr(rs,A,B,GS.dim)}</div>
   <div class="grid g4" style="margin-top:12px">${gKpi(gm(ma),'gasto '+GX.pln(A))}${gKpi(gm(mb),'gasto '+GX.pln(B))}${gKpi((d>=0?'+':'')+gm(d),'diferencia',d>0?'r':'g',ma?gp(d/ma*100):'')}${gKpi((nb-na>=0?'+':'')+(nb-na),'OT atendidas (cambio)',nb>na?'a':'g',`${na} → ${nb}`)}</div>
   <div class="grid g2" style="margin-top:12px"><div class="card"><h3>Efecto volumen vs efecto costo</h3>
    <div class="gdec"><div><small>Más / menos órdenes de trabajo</small><b style="color:${volE>=0?'var(--rd)':'var(--gn)'}">${volE>=0?'+':''}${gm(volE)}</b><small>${na} → ${nb} OT × costo base ${gf(aa)}</small></div><div><small>OT más caras / más baratas</small><b style="color:${rateE>=0?'var(--rd)':'var(--gn)'}">${rateE>=0?'+':''}${gm(rateE)}</b><small>costo por OT ${gf(aa)} → ${gf(ab)}</small></div><div><small>Gasto sin OT</small><b style="color:${sinE>=0?'var(--rd)':'var(--gn)'}">${sinE>=0?'+':''}${gm(sinE)}</b><small>compras sin orden de trabajo</small></div></div>
