@@ -1393,7 +1393,7 @@ function gInit(){
 // aplica los filtros globales (periodo, tipo, región, tipo de unidad) y reindexa los meses
 function gApply(){
   const X=GX,f=GS.f,N0=X.per0.length;
-  if(f.from==null||f.from>=N0)f.from=0;if(f.to==null||f.to>=N0)f.to=N0-1;if(f.to<f.from)f.to=f.from;
+  if(f.from==null||f.from>=N0){const ly=X.per0[N0-1].slice(0,4);f.from=Math.max(0,X.per0.findIndex(p=>p.slice(0,4)==ly))}if(f.to==null||f.to>=N0)f.to=N0-1;if(f.to<f.from)f.to=f.from;
   X.per=X.per0.slice(f.from,f.to+1);X.NP=X.per.length;
   X.R=X.R0.filter(r=>r.p0>=f.from&&r.p0<=f.to&&(!f.tp||f.tp.has(r.tp))&&(!f.rg||r.rg==f.rg)&&(!f.ut||r.ut==f.ut)&&(f.mx!==false||r.cc!='MTRIZ'));
   X.R.forEach(r=>r.p=r.p0-f.from);
@@ -1410,7 +1410,7 @@ function gSet(k,v){const f=GS.f;
   else f[k]=v;
   gApply();render()}
 function gQuick(n){const f=GS.f,X=GX,N0=X.per0.length,lf=Math.max(0,X.partial0?N0-2:N0-1);
-  if(n==0){f.from=0;f.to=N0-1}else{f.to=lf;f.from=Math.max(0,lf-n+1)}gApply();render()}
+  if(n==-1){f.from=0;f.to=N0-1}else if(n==0){const ly=X.per0[N0-1].slice(0,4);f.from=Math.max(0,X.per0.findIndex(p=>p.slice(0,4)==ly));f.to=N0-1}else{f.to=lf;f.from=Math.max(0,lf-n+1)}gApply();render()}
 function gClean(){GS.f={from:null,to:null,tp:null,rg:'',ut:'',mx:true};gApply();render()}
 const gTpKey=s=>!s?'':[...s].sort().join(',');
 function gFilters(){
@@ -1422,7 +1422,7 @@ function gFilters(){
   const nAct=(f.from>0||f.to<N0-1?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0)+(f.mx===false?1:0);
   const sel=(lbl,onch,body,on)=>`<label class="gsl${on?' on':''}"><small>${lbl}</small><span class="gsw"><select onchange="${onch}">${body}</select></span></label>`;
   return `<div class="card gfil"><div class="gfh"><span class="gfi">⚙</span><div><b>FILTROS</b><small>Elige qué quieres ver: todas las pestañas se ajustan a tu selección</small></div><span class="gfc">${nAct?nAct+' activo'+(nAct>1?'s':''):'sin filtros'}</span>${act?'<button class="gfx" onclick="gClean()">✕ Quitar filtros</button>':''}</div>
-  <div class="gfg"><div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>
+  <div class="gfg"><div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo ${X.per0[N0-1].slice(0,4)}</span>${X.per0[0].slice(0,4)!=X.per0[N0-1].slice(0,4)?'<span class="chip" onclick="gQuick(-1)">Todo el histórico</span>':''}<span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>
   <div class="gfb"><h4>💲 Tipo de gasto</h4><div class="gfq gseg">${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div></div>
   <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${utI.length?`<optgroup label="Del inventario cargado">${utI.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}${utE.length?`<optgroup label="${utI.length?'No están en el inventario (descripción de la base de gasto)':'Descripción en la base de gasto'}">${utE.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}`,!!f.ut)}</div><label class="gsw2${f.mx===false?'':' on'}" onclick="event.preventDefault();gSet('mx',${f.mx===false?'true':'false'})"><span class="gtg"><i></i></span><span><b>Incluir gastos de Matriz</b><small>${f.mx===false?'Excluida: no se suma la Oficina Matriz':'Incluida: se suma la Oficina Matriz (MTRIZ)'}</small></span></label></div></div></div>
   <div class="gfn">Mostrando <b>${fmt(X.R.length)}</b> de ${fmt(X.R0.length)} líneas · <b>${gm(X.R.reduce((a,r)=>a+r.m,0))}</b></div></div>`}
@@ -1800,9 +1800,25 @@ function gDet(){
 }
 function gKeepD(el){const id=el.placeholder,pos=el.selectionStart;render();const e2=[...document.querySelectorAll('.fbar input')].find(i=>i.placeholder==id);if(e2){e2.focus();e2.setSelectionRange(pos,pos)}}
 // ---------- carga desde el panel de administración ----------
+// une un Excel de gastos nuevo con lo que ya está cargado: se reemplazan solo los meses+centros de costo que trae el archivo nuevo; el resto se conserva
+function gMerge(A,B){const nm=(S,x,i)=>i<0?'':(Array.isArray(S[x][i])?S[x][i][0]:S[x][i]);
+ const kf=(S,r)=>[S.per[r[0]],nm(S,'cc',r[1]),nm(S,'cta',r[2]),nm(S,'nodo',r[3]),nm(S,'prov',r[4]),nm(S,'oc',r[5]),nm(S,'ot',r[6]),r[7],nm(S,'sub',r[8]),nm(S,'un',r[9]),r[10],r[11]].join('\u0001');
+ // acumulativo: se conserva todo lo anterior y de lo nuevo solo se agrega lo que no estaba (un movimiento idéntico ya cargado no se vuelve a sumar)
+ const have=new Map();A.rows.forEach(r=>{const k=kf(A,r);have.set(k,(have.get(k)||0)+1)});
+ const keep=A.rows,fresh=[];let dups=0;B.rows.forEach(r=>{const k=kf(B,r),c=have.get(k)||0;if(c>0){have.set(k,c-1);dups++}else fresh.push(r)});gMerge.last={nuevas:fresh.length,dup:dups};
+ const mk=()=>({m:new Map(),a:[]}),d={per:mk(),cc:mk(),cta:mk(),nodo:mk(),prov:mk(),sub:mk(),un:mk(),oc:mk(),ot:mk()};
+ const id=(o,k,v)=>{let i=o.m.get(k);if(i==null){i=o.a.length;o.m.set(k,i);o.a.push(v)}return i};
+ const arr=(S,i,x)=>S[x][i],out=[];
+ const add=(S,r)=>{const g=(x,i)=>i<0?-1:id(d[x],Array.isArray(S[x][i])?S[x][i][0]:S[x][i],S[x][i]);
+  out.push([id(d.per,S.per[r[0]],S.per[r[0]]),g('cc',r[1]),g('cta',r[2]),g('nodo',r[3]),g('prov',r[4]),g('oc',r[5]),g('ot',r[6]),r[7],g('sub',r[8]),g('un',r[9]),r[10],r[11]])};
+ keep.forEach(r=>add(A,r));fresh.forEach(r=>add(B,r));
+ const order=d.per.a.map((p,i)=>[p,i]).sort((x,y)=>x[0]<y[0]?-1:1),remap=[];order.forEach(([p,i],n)=>remap[i]=n);out.forEach(r=>r[0]=remap[r[0]]);
+ const newer=(B.genISO||'')>=(A.genISO||'')?B:A;
+ return{gen:newer.gen,genISO:newer.genISO,per:order.map(x=>x[0]),cc:d.cc.a,cta:d.cta.a,nodo:d.nodo.a,prov:d.prov.a,sub:d.sub.a,un:d.un.a,oc:d.oc.a,ot:d.ot.a,rows:out,py:(A.py&&Object.keys(A.py).length)?A.py:B.py}}
 async function gLoadFile(file,st){
-  const wb=await readXLSX(file);G=gParse(wb);gInit();
-  st.textContent+='\n✓ Gastos: '+fmt(G.rows.length)+' líneas, '+G.per.length+' meses ('+G.per[0]+' a '+G.per[G.per.length-1]+'), generado '+G.gen;
+  const wb=await readXLSX(file),nw=gParse(wb),had=G&&G.rows&&G.rows.length;
+  G=had?gMerge(G,nw):nw;GS.f.from=null;GS.f.to=null;gInit();
+  st.textContent+='\n✓ Gastos: archivo con '+fmt(nw.rows.length)+' líneas ('+nw.per[0]+' a '+nw.per[nw.per.length-1]+')'+(had?' → se agregaron '+fmt(gMerge.last.nuevas)+' líneas nuevas y se omitieron '+fmt(gMerge.last.dup)+' duplicadas; ahora hay '+fmt(G.rows.length)+' líneas, '+G.per.length+' meses ('+G.per[0]+' a '+G.per[G.per.length-1]+')':'')+', generado '+G.gen;
 }
 gInit();
 
