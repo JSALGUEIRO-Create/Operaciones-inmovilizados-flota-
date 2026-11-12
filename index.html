@@ -1292,20 +1292,16 @@ function gInit(){
   X.sys=n=>{n=n||'';if(/UREA/.test(n))return 'Urea';if(/ACCESORIOS|ROTULACION|HERRAMIENTAS|IMPULSORA|SINIESTRO/.test(n))return 'Accesorios y otros';if(/LAVADO/.test(n))return 'Lavado';
     return /FRENO/.test(n)?'Frenos':/LLANTA/.test(n)?'Llantas':/CARROCER/.test(n)?'Carrocería':/ELECT/.test(n)?'Sistema eléctrico':/CLUTCH/.test(n)?'Clutch':/SUSPENS/.test(n)?'Suspensión':/TRANSM|DIFERENCIAL/.test(n)?'Transmisión y diferencial':/MOTOR|GAS/.test(n)?'Motor':'Otros'};
   X.eq=n=>/MONTAC/.test(n||'')?'Montacargas':'Móviles';
-  // descripción de cada económico: 1) inventario cargado, 2) seguimiento de inmovilizados, 3) descripción del ERP
+  // descripción de cada económico: 1) inventario cargado; si no aparece ahí, 2) la descripción de la base de gastos (ERP); 3) el seguimiento solo si el ERP no trae descripción
   const DM={};try{D.forEach(r=>{const k=String(r[11]||'').trim();if(k&&!DM[k])DM[k]=r[3]})}catch(e){}
   const FUm=(typeof FU==='object'&&FU)?FU:{};X.nFU=Object.keys(FUm).length;
   const nrm=s=>String(s||'').toUpperCase().replace(/\s+/g,' ').trim();
   G.rows.forEach(r=>X.R0.push({p0:r[0],p:r[0],cc:G.cc[r[1]][0],ccN:G.cc[r[1]][1],cta:r[2],ctn:X.CTN[r[2]],nd:r[3],ndn:X.NDN[r[3]],pv:G.prov[r[4]],oc:r[5],ot:r[6],tp:r[7],sb:r[8]<0?'Sin subtipo':G.sub[r[8]],un:r[9]<0?'':G.un[r[9]][0],und:r[9]<0?'':G.un[r[9]][1],fa:r[10],m:r[11]}));
   X.R0.forEach(r=>{r.rg=X.reg(r.cc);r.sy=X.sys(r.ctn);r.eq=X.eq(r.ctn);r.tpn=GTP[r.tp];
     const inv=r.un?FUm[r.un]:null;r.erp=nrm(r.und);
-    r.src=inv?'inv':(r.un&&DM[r.un])?'seg':r.erp?'erp':'none';
-    r.dsc=nrm(inv?inv[0]:(r.un&&DM[r.un])?DM[r.un]:r.erp)});
-  // aprende cómo se llama en el inventario cada descripción del ERP, para las unidades que no enlazan
-  const cnt={};X.R0.forEach(r=>{if((r.src=='inv'||r.src=='seg')&&r.erp){const k=r.erp+'|'+r.dsc;cnt[k]=(cnt[k]||0)+1}});
-  const best={};Object.keys(cnt).forEach(k=>{const [m,d]=k.split('|');if(!best[m]||cnt[k]>best[m][0])best[m]=[cnt[k],d]});
-  X.erpMap={};Object.keys(best).forEach(m=>X.erpMap[m]=best[m][1]);
-  X.R0.forEach(r=>{r.md=(r.src=='inv'||r.src=='seg')?(r.dsc||'SIN DESCRIPCIÓN'):(r.erp?(X.erpMap[r.erp]||r.erp):'SIN DESCRIPCIÓN');r.ut=r.md=='SIN DESCRIPCIÓN'?'Sin identificar':gCat(r.md)});
+    r.src=inv?'inv':r.erp?'erp':(r.un&&DM[r.un])?'seg':'none';
+    r.dsc=nrm(inv?inv[0]:r.erp?r.erp:(r.un&&DM[r.un])?DM[r.un]:'')});
+  X.R0.forEach(r=>{r.md=r.dsc||'SIN DESCRIPCIÓN';r.ut=r.md=='SIN DESCRIPCIÓN'?'Sin identificar':gCat(r.md)});
   // flota del inventario por modelo (los nombres del inventario coinciden con los de los modelos)
   const FDup={};try{Object.keys(FD).forEach(k=>FDup[nrm(k)]=FD[k])}catch(e){}
   X.mdMap={};Object.keys(FDup).forEach(k=>X.mdMap[k]=k);
@@ -1582,7 +1578,7 @@ function gUt(){
   const mat=`<div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Gasto mensual por tipo de unidad</h3><div style="overflow-x:auto"><table class="gtb"><tr><th>Tipo</th>${GX.per.map((p,i)=>`<th style="text-align:right">${GX.pls(i)}${GX.partial&&i==NP-1?'*':''}</th>`).join('')}<th>Total</th></tr>${cats.map(c=>{const av=c.fm/nf;return `<tr><td><b>${ge(c.k)}</b></td>${c.mm.map((v,i)=>`<td style="${gHeat(v,av)};text-align:right;${GX.partial&&i==NP-1?'opacity:.55':''}">${v?gm(v):'–'}</td>`).join('')}<td><b>${gm(c.m)}</b></td></tr>`}).join('')}</table></div></div>`;
   const nCorr=cats.reduce((a,c)=>a+c.cor,0),nPre=cats.reduce((a,c)=>a+c.pre,0);
   const cov={inv:0,seg:0,erp:0,none:0},seenU=new Set();R.forEach(r=>{if(!r.un||seenU.has(r.un))return;seenU.add(r.un);cov[r.src]++});const nU=seenU.size||1;
-  const covTxt=GX.nFU?`Enlace con el inventario cargado: <b>${cov.inv}</b> de ${nU} unidades con gasto (${(cov.inv/nU*100).toFixed(0)}%); ${cov.seg} se identificaron por el seguimiento de inmovilizados y ${cov.erp} por la descripción del ERP.`:`<b>Aún no hay inventario por económico cargado</b>: el tipo sale del seguimiento de inmovilizados (${cov.seg} unidades) y de la descripción del ERP (${cov.erp}). Sube el inventario en 📤 Cargar archivos para enlazarlo por número económico.`;
+  const covTxt=GX.nFU?`Enlace con el inventario cargado: <b>${cov.inv}</b> de ${nU} unidades con gasto (${(cov.inv/nU*100).toFixed(0)}%); ${cov.erp} no aparecen en el inventario y usan la descripción de la base de gastos${cov.seg?` (${cov.seg} sin descripción tomaron la del seguimiento)`:''}.`:`<b>Aún no hay inventario por económico cargado</b>: el tipo sale de la descripción de la base de gastos (${cov.erp} unidades). Sube el inventario en 📤 Cargar archivos para enlazarlo por número económico.`;
   return `<h2 style="margin-top:6px">Gasto por tipo de unidad</h2><p class="sub">Cuánto cuesta mantener cada tipo de unidad, en preventivo y en correctivo. Filtros: <b>${ge(gFiltTxt())}</b>. Clic en un tipo para ver sus modelos.</p><div class="card gwarn" style="margin:0 0 10px;font-size:12.5px">${covTxt}</div>
   <div class="card story"><b>${ge(top.k)}</b> es el tipo que más gasta: <b>${gm(top.m)}</b> (${(top.m/T.m*100).toFixed(0)}% del total), con ${top.idx.toFixed(0)}% en correctivo.${mxI?` El más dependiente del correctivo es <b>${ge(mxI.k)}</b> (${mxI.idx.toFixed(0)}%).`:''}${mxU?` Por unidad con gasto, el más caro es <b>${ge(mxU.k)}</b> (${gf(mxU.pu)} por unidad en el periodo).`:''} En total, ${gm(nPre)} fueron preventivos y ${gm(nCorr)} correctivos.</div>
   <div class="grid g4" style="margin-top:12px">${gKpi(gm(T.m),'gasto del filtro')}${gKpi(cats.length,'tipos de unidad','',`${mdAll.length} modelos`)}${gKpi(gm(nPre),'preventivo','g',`${(nPre/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}${gKpi(gm(nCorr),'correctivo','r',`${(nCorr/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}</div>
