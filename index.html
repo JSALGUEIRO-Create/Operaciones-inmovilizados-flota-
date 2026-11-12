@@ -212,6 +212,11 @@ svg .ck{cursor:pointer}svg rect.ck:hover,svg circle.ck:hover{filter:brightness(1
 .gevf{margin-top:8px;font-size:15px;display:flex;gap:4px;flex-wrap:wrap}
 .gsi{padding:9px 11px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg2);color:var(--tx);font-size:13px}.gsi:focus{border-color:var(--pr);outline:0}
 .gtabs{flex-wrap:wrap!important;overflow:visible!important}
+
+.gsw2{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px 11px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg2);cursor:pointer;user-select:none}
+.gsw2 b{font-size:13px;display:block}.gsw2 small{font-size:11px;color:var(--mu)}.gsw2.on{border-color:var(--pr)}
+.gtg{width:40px;height:22px;border-radius:12px;background:var(--bd);position:relative;flex:none;transition:.15s}.gtg i{position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.gsw2.on .gtg{background:var(--pr)}.gsw2.on .gtg i{left:21px}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1390,7 +1395,7 @@ function gApply(){
   const X=GX,f=GS.f,N0=X.per0.length;
   if(f.from==null||f.from>=N0)f.from=0;if(f.to==null||f.to>=N0)f.to=N0-1;if(f.to<f.from)f.to=f.from;
   X.per=X.per0.slice(f.from,f.to+1);X.NP=X.per.length;
-  X.R=X.R0.filter(r=>r.p0>=f.from&&r.p0<=f.to&&(!f.tp||f.tp.has(r.tp))&&(!f.rg||r.rg==f.rg)&&(!f.ut||r.ut==f.ut));
+  X.R=X.R0.filter(r=>r.p0>=f.from&&r.p0<=f.to&&(!f.tp||f.tp.has(r.tp))&&(!f.rg||r.rg==f.rg)&&(!f.ut||r.ut==f.ut)&&(f.mx!==false||r.cc!='MTRIZ'));
   X.R.forEach(r=>r.p=r.p0-f.from);
   X.partial=X.partial0&&f.to==N0-1;X.lastFull=Math.max(0,X.partial?X.NP-2:X.NP-1);
   X.pl=p=>{const s=X.per[p];return s?GMES[+s.slice(5)-1]+' '+s.slice(2,4):''};
@@ -1406,22 +1411,22 @@ function gSet(k,v){const f=GS.f;
   gApply();render()}
 function gQuick(n){const f=GS.f,X=GX,N0=X.per0.length,lf=Math.max(0,X.partial0?N0-2:N0-1);
   if(n==0){f.from=0;f.to=N0-1}else{f.to=lf;f.from=Math.max(0,lf-n+1)}gApply();render()}
-function gClean(){GS.f={from:null,to:null,tp:null,rg:'',ut:''};gApply();render()}
+function gClean(){GS.f={from:null,to:null,tp:null,rg:'',ut:'',mx:true};gApply();render()}
 const gTpKey=s=>!s?'':[...s].sort().join(',');
 function gFilters(){
   const X=GX,f=GS.f,N0=X.per0.length,pl0=i=>GMES[+X.per0[i].slice(5)-1]+' '+X.per0[i].slice(2,4);
   const opt=sel=>X.per0.map((p,i)=>`<option value="${i}" ${i==sel?'selected':''}>${pl0(i)}${X.partial0&&i==N0-1?' (parcial)':''}</option>`).join('');
   const tk=gTpKey(f.tp),tc=[['','Todo el gasto'],['0','Preventivo'],['1','Correctivo'],['0,1','Preventivo + correctivo'],['2','Sin OT']];
   const regs=[...new Set(X.R0.map(r=>r.rg))].sort(),utI=[...new Set(X.R0.filter(r=>r.uts=='inv').map(r=>r.ut))].sort(),utE=[...new Set(X.R0.filter(r=>r.uts!='inv').map(r=>r.ut))].filter(x=>!utI.includes(x)).sort();
-  const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut;
-  const nAct=(f.from>0||f.to<N0-1?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0);
+  const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut||f.mx===false;
+  const nAct=(f.from>0||f.to<N0-1?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0)+(f.mx===false?1:0);
   const sel=(lbl,onch,body,on)=>`<label class="gsl${on?' on':''}"><small>${lbl}</small><span class="gsw"><select onchange="${onch}">${body}</select></span></label>`;
   return `<div class="card gfil"><div class="gfh"><span class="gfi">⚙</span><div><b>FILTROS</b><small>Elige qué quieres ver: todas las pestañas se ajustan a tu selección</small></div><span class="gfc">${nAct?nAct+' activo'+(nAct>1?'s':''):'sin filtros'}</span>${act?'<button class="gfx" onclick="gClean()">✕ Quitar filtros</button>':''}</div>
   <div class="gfg"><div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo el año</span><span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>
   <div class="gfb"><h4>💲 Tipo de gasto</h4><div class="gfq gseg">${tc.map(([v,l])=>`<span class="chip ${tk==v?'on':''}" onclick="gSet('tp','${v}')">${l}</span>`).join('')}</div></div>
-  <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${utI.length?`<optgroup label="Del inventario cargado">${utI.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}${utE.length?`<optgroup label="${utI.length?'No están en el inventario (descripción de la base de gasto)':'Descripción en la base de gasto'}">${utE.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}`,!!f.ut)}</div></div></div>
+  <div class="gfb"><h4>📍 Alcance</h4><div class="gfd">${sel('Región',"gSet('rg',this.value)",`<option value="">Todas las regiones</option>${regs.map(x=>`<option ${f.rg==x?'selected':''}>${ge(x)}</option>`).join('')}`,!!f.rg)}${sel('Tipo de unidad',"gSet('ut',this.value)",`<option value="">Todos los tipos</option>${utI.length?`<optgroup label="Del inventario cargado">${utI.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}${utE.length?`<optgroup label="${utI.length?'No están en el inventario (descripción de la base de gasto)':'Descripción en la base de gasto'}">${utE.map(x=>`<option ${f.ut==x?'selected':''}>${ge(x)}</option>`).join('')}</optgroup>`:''}`,!!f.ut)}</div><label class="gsw2${f.mx===false?'':' on'}" onclick="event.preventDefault();gSet('mx',${f.mx===false?'true':'false'})"><span class="gtg"><i></i></span><span><b>Incluir gastos de Matriz</b><small>${f.mx===false?'Excluida: no se suma la Oficina Matriz':'Incluida: se suma la Oficina Matriz (MTRIZ)'}</small></span></label></div></div></div>
   <div class="gfn">Mostrando <b>${fmt(X.R.length)}</b> de ${fmt(X.R0.length)} líneas · <b>${gm(X.R.reduce((a,r)=>a+r.m,0))}</b></div></div>`}
-function gFiltTxt(){const X=GX,f=GS.f,N0=X.per0.length,a=[];a.push(X.pl(0)+(X.NP>1?' a '+X.pl(X.NP-1):''));const tk=gTpKey(f.tp);if(tk)a.push({'0':'Preventivo','1':'Correctivo','0,1':'Preventivo + correctivo','2':'Sin OT'}[tk]||'');if(f.rg)a.push('Región '+f.rg);if(f.ut)a.push(f.ut);return a.join(' · ')}
+function gFiltTxt(){const X=GX,f=GS.f,N0=X.per0.length,a=[];a.push(X.pl(0)+(X.NP>1?' a '+X.pl(X.NP-1):''));const tk=gTpKey(f.tp);if(tk)a.push({'0':'Preventivo','1':'Correctivo','0,1':'Preventivo + correctivo','2':'Sin OT'}[tk]||'');if(f.rg)a.push('Región '+f.rg);if(f.ut)a.push(f.ut);if(f.mx===false)a.push('Sin Matriz');return a.join(' · ')}
 // ---------- utilidades ----------
 const gm=n=>{const a=Math.abs(n),s=n<0?'-':'';return a>=1e6?s+'$'+(a/1e6).toFixed(a>=1e7?1:2)+'M':a>=1e3?s+'$'+Math.round(a/1e3).toLocaleString('es-MX')+'k':s+'$'+Math.round(a)};
 const gf=n=>(n<0?'-$':'$')+Math.round(Math.abs(n)).toLocaleString('es-MX');
