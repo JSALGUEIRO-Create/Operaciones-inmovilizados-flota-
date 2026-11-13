@@ -1392,7 +1392,7 @@ function gInit(){
   // flota del inventario por modelo (los nombres del inventario coinciden con los de los modelos)
   const FDup={};try{Object.keys(FD).forEach(k=>FDup[nrm(k)]=FD[k])}catch(e){}
   X.mdMap={};Object.keys(FDup).forEach(k=>X.mdMap[k]=k);
-  X.fleet=md=>FDup[md]||0;
+  X.fleet=md=>FDup[md]||0;X.fleetAll=FDup;
   const N0=X.per0.length,last=X.per0[N0-1];X.partial0=false;
   if(G.genISO&&G.genISO.slice(0,7)==last){const y=+last.slice(0,4),m=+last.slice(5);const dm=new Date(y,m,0).getDate();X.partial0=+G.genISO.slice(8)<dm;X.genDay=+G.genISO.slice(8);X.dm=dm}
   GX=X;gApply();
@@ -1720,11 +1720,16 @@ function gUtRows(rs,kf){
     let fm=0;for(let p=0;p<GX.NP;p++)if(!(GX.partial&&p==GX.NP-1))fm+=x.mm[p];x.fm=fm;x.nf=nf});
   return a}
 function gPf(cats,mdAll){
-  const mk=(arr,ttl,click)=>{arr=arr.filter(x=>x.fl).sort((a,b)=>b.pf-a.pf).slice(0,12);if(!arr.length)return '';const mx=arr[0].pf||1;
-   return `<div><h4 style="margin:0 0 8px;font-size:13px">${ttl}</h4>${arr.map(x=>`<div class="gsb ck" onclick="${click}('${gq(x.k)}')"><span title="${ge(x.k)}"><b>${ge(x.k)}</b></span><div class="gsbar" style="width:${100*x.pf/mx}%"><i style="width:100%;background:var(--ac,#4f8cff)"></i></div><em><b>${gf(x.pf)}</b> por unidad · ${gm(x.m)} ÷ ${fmt(x.fl)} uds</em></div>`).join('')}</div>`};
-  const a=mk(cats,'Por tipo de unidad',"gOpen.bind(null,'ut')");
-  if(!a)return '';
-  return `<div class="card" style="margin-top:12px"><h3>Gasto por proporción de flota</h3><p class="note" style="margin-top:0">Gasto total del filtro ÷ unidades que existen en el inventario (no solo las que fallaron). Ej.: $1,000 de gasto con 1,000 unidades = $1 por unidad de flota. Muestra qué tipo pesa más sobre la flota que tienes.</p>${a}</div>`}
+  const FA=GX.fleetAll||{},ks=Object.keys(FA);if(!ks.length)return '';
+  const cm=new Map(cats.map(c=>[c.k,c]));
+  const arr=ks.map(k=>{const c=cm.get(k);const fl=FA[k],m=c?c.m:0;return {k,fl,m,pf:fl?m/fl:0}}).sort((a,b)=>b.pf-a.pf||b.fl-a.fl);
+  const totFl=arr.reduce((a,x)=>a+x.fl,0),flCon=arr.filter(x=>x.m>0).reduce((a,x)=>a+x.fl,0),mIn=arr.reduce((a,x)=>a+x.m,0);
+  const out=cats.filter(c=>!FA[c.k]),mOut=out.reduce((a,c)=>a+c.m,0);
+  const mx=arr[0].pf||1;
+  const bars=arr.map(x=>`<div class="gsb ck" onclick="gOpen('ut','${gq(x.k)}')"><span title="${ge(x.k)}"><b>${ge(x.k)}</b></span><div class="gsbar" style="width:${100*x.pf/mx}%"><i style="width:100%;background:var(--ac,#4f8cff)"></i></div><em><b>${gf(x.pf)}</b> por unidad · ${gm(x.m)} ÷ ${fmt(x.fl)} uds</em></div>`).join('');
+  return `<div class="card" style="margin-top:12px"><h3>Gasto por proporción de flota</h3><p class="note" style="margin-top:0">Gasto del filtro ÷ unidades que existen en el inventario (no solo las que fallaron). Ej.: $1,000 de gasto con 1,000 unidades = $1 por unidad de flota.</p>
+  <div class="gwarn card" style="margin:0 0 10px;font-size:12.5px">Inventario: <b>${fmt(totFl)}</b> unidades en <b>${ks.length}</b> modelos · <b>${fmt(flCon)}</b> con gasto en el filtro y <b>${fmt(totFl-flCon)}</b> sin gasto. Gasto de estos modelos: <b>${gm(mIn)}</b>${out.length?` · Fuera del inventario (${out.length} tipos, ${gm(mOut)}): no entra porque no se sabe cuántas unidades son.`:''}</div>
+  <div style="max-height:70vh;overflow:auto">${bars}</div></div>`}
 function gUt(){
   const R=GX.R,NP=GX.NP,T=gtot(R),nf=NP-(GX.partial?1:0)||1;
   const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);
