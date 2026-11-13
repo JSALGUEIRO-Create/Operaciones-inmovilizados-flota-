@@ -1558,7 +1558,7 @@ function gNarr(rs,A,B,dimKey){
 // ---------- 2 · ¿POR QUÉ CAMBIÓ? ----------
 GS.cmp={mode:'m',a:null,b:null,ya:null,yb:null,same:true};
 const GMC=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-function gCmpSets(){const X=GX,c=GS.cmp,P=X.per0,N=P.length,pm=i=>GMESL[+P[i].slice(5)-1]+' '+P[i].slice(0,4),ps=i=>GMES[+P[i].slice(5)-1]+' '+P[i].slice(2,4),yrs=[...new Set(P.map(p=>p.slice(0,4)))],lf=Math.max(0,X.partial0?N-2:N-1);
+function gCmpSets(ovr){const X=GX,c=ovr||GS.cmp,P=X.per0,N=P.length,pm=i=>GMESL[+P[i].slice(5)-1]+' '+P[i].slice(0,4),ps=i=>GMES[+P[i].slice(5)-1]+' '+P[i].slice(2,4),yrs=[...new Set(P.map(p=>p.slice(0,4)))],lf=Math.max(0,X.partial0?N-2:N-1);
  if(!c.a||c.a[0]>=N||c.b[0]>=N){c.b=[lf,lf];const py=P.indexOf((+P[lf].slice(0,4)-1)+P[lf].slice(4));c.a=py>=0?[py,py]:[Math.max(0,lf-1),Math.max(0,lf-1)]}
  if(!c.yb||!yrs.includes(c.yb)){c.yb=yrs[yrs.length-1];c.ya=yrs[yrs.length-2]||yrs[0]}
  let A=[],B=[],la,lb,sa,sb;const rng=(r)=>{const a=Math.min(r[0],r[1]),b=Math.max(r[0],r[1]),o=[];for(let i=a;i<=b;i++)o.push(i);return o};
@@ -1595,9 +1595,13 @@ function gCmpUi(S){const c=GS.cmp,P=S.P,mo=(id,v)=>`<select onchange="gCmpSet('$
  <div class="gcv">${side('PERIODO BASE (antes)','#8ba0c4',a)}<b class="gvs">VS</b>${side('PERIODO A EXPLICAR (después)','#4f8cff',b)}</div>
  ${c.mode=='y'?`<label class="gck"><input type="checkbox" ${c.same?'checked':''} onchange="gCmpSet('same',this.checked)"> Solo los meses que existen en los dos años (comparación justa)</label>`:''}
  <div class="gfq" style="margin-top:10px"><b style="font-size:11px;color:var(--mu);align-self:center">Atajos</b><span class="chip" onclick="gCmpPreset('yoy')">Último mes vs mismo mes del año anterior</span><span class="chip" onclick="gCmpPreset('mom')">Último mes vs mes anterior</span><span class="chip" onclick="gCmpPreset('ytd')">Año vs año anterior (comparable)</span><span class="chip" onclick="gCmpPreset('q')">Últimos 3 meses vs 3 anteriores</span></div></div></div>`}
-function gWhy(){const X=GX,S=gCmpSets(),sv={NP:X.NP,per:X.per,pl:X.pl,pls:X.pls,pln:X.pln,partial:X.partial,lastFull:X.lastFull};
+function gWithCmp(ov,fn){const X=GX,S=gCmpSets(ov),sv={NP:X.NP,per:X.per,pl:X.pl,pls:X.pls,pln:X.pln,partial:X.partial,lastFull:X.lastFull};
  X.NP=2;X.per=['A','B'];X.pl=X.pln=i=>i?S.lb:S.la;X.pls=i=>i?S.sb:S.sa;X.partial=false;X.lastFull=1;
- try{return gWhyBody(S)}finally{Object.assign(X,sv)}}
+ try{return fn(S)}finally{Object.assign(X,sv)}}
+// comparación por omisión para reportes: último mes completo contra el mismo mes del año anterior (si no existe, contra el mes anterior)
+function gDefCmp(){const X=GX,P=X.per0,N=P.length,lf=Math.max(0,X.partial0?N-2:N-1),py=P.indexOf((+P[lf].slice(0,4)-1)+P[lf].slice(4));
+ return {mode:'m',a:[py>=0?py:Math.max(0,lf-1),py>=0?py:Math.max(0,lf-1)],b:[lf,lf]}}
+function gWhy(){return gWithCmp(null,gWhyBody)}
 function gWhyBody(S){
   const rs=S.A.length&&S.B.length?gCmpRows(S):[],NP=2,T=gtot(rs),A=0,B=1,dim=GDIM[GS.dim];
   const ma=T.mm[A],mb=T.mm[B],d=mb-ma;
@@ -1723,12 +1727,17 @@ function gUtRows(rs,kf){
   a.forEach(x=>{x.pre=x.tp[0];x.cor=x.tp[1];x.sin=x.tp[2];x.idx=x.pre+x.cor?x.cor/(x.pre+x.cor)*100:0;x.uni=U.has(x.k)?U.get(x.k).size:0;x.pu=x.uni?x.m/x.uni:0;x.nOT=x.ot.size;x.pOT=x.nOT?(x.pre+x.cor)/x.nOT:0;
     let fm=0;for(let p=0;p<GX.NP;p++)if(!(GX.partial&&p==GX.NP-1))fm+=x.mm[p];x.fm=fm;x.nf=nf});
   return a}
-function gPf(cats,mdAll){
-  const FA=(GX.fleetAllF?GX.fleetAllF():GX.fleetAll)||{},ks=Object.keys(FA);if(!ks.length)return '';
+function gPfData(cats){
+  const FA=(GX.fleetAllF?GX.fleetAllF():GX.fleetAll)||{},ks=Object.keys(FA);if(!ks.length)return null;
   const cm=new Map(cats.map(c=>[c.k,c]));
-  const arr=ks.map(k=>{const c=cm.get(k);const fl=FA[k],m=c?c.m:0;return {k,fl,m,pf:fl?m/fl:0}}).sort((a,b)=>b.pf-a.pf||b.fl-a.fl);
+  const arr=ks.map(k=>{const c=cm.get(k);const fl=FA[k],m=c?c.m:0;return {k,fl,m,pf:fl?m/fl:0,pre:c?c.pre:0,cor:c?c.cor:0,pfm:0}}).sort((a,b)=>b.pf-a.pf||b.fl-a.fl);
+  const nf=GX.NP-(GX.partial?1:0)||1;arr.forEach(x=>{const c=cm.get(x.k);x.pfm=x.fl&&c?c.fm/x.fl/nf:0});
   const totFl=arr.reduce((a,x)=>a+x.fl,0),flCon=arr.filter(x=>x.m>0).reduce((a,x)=>a+x.fl,0),mIn=arr.reduce((a,x)=>a+x.m,0);
   const out=cats.filter(c=>!FA[c.k]),mOut=out.reduce((a,c)=>a+c.m,0);
+  return {arr,ks,totFl,flCon,mIn,out,mOut}}
+function gPfList(){return gPfData(gUtRows(GX.R,r=>r.ut))}
+function gPf(cats,mdAll){
+  const D0=gPfData(cats);if(!D0)return '';const {arr,ks,totFl,flCon,mIn,out,mOut}=D0;
   const mx=arr[0].pf||1;
   const bars=arr.map(x=>`<div class="gsb ck" onclick="gOpen('ut','${gq(x.k)}')"><span title="${ge(x.k)}"><b>${ge(x.k)}</b></span><div class="gsbar" style="width:${100*x.pf/mx}%"><i style="width:100%;background:var(--ac,#4f8cff)"></i></div><em><b>${gf(x.pf)}</b> por unidad · ${gm(x.m)} ÷ ${fmt(x.fl)} uds</em></div>`).join('');
   return `<div class="card" style="margin-top:12px"><h3>Gasto por proporción de flota</h3><p class="note" style="margin-top:0">Gasto del filtro ÷ unidades que existen en el inventario (no solo las que fallaron). Ej.: $1,000 de gasto con 1,000 unidades = $1 por unidad de flota.</p>
@@ -1927,27 +1936,40 @@ gGo=function(dim,key){gOpen(dim,key)};gDrill=function(dim,key){gOpen(dim,key)};
 if(typeof refreshDerived=='function'){const _rd=refreshDerived;refreshDerived=function(){_rd();try{gInit()}catch(e){console.error(e)}}}
 
 // ====== Gasto de mantenimiento integrado: WhatsApp, correo, Paquetín, presentación, portada ======
+function gaD(iso){const q=String(iso).split('-');return q.length<3?String(iso):(+q[2])+' '+GMC[+q[1]-1]+' '+q[0]}
 function gaOK(){try{return !!(typeof G!=='undefined'&&G&&G.rows&&G.rows.length&&typeof GX!=='undefined'&&GX.NP>=1&&GX.R&&GX.R.length)}catch(e){return false}}
 const gaPlain=h=>h.replace(/<\/p>/g,'\n').replace(/<b[^>]*>(.*?)<\/b>/g,'*$1*').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
 const gaCol=h=>h.replace(/var\(--rd\)/g,'#b91c1c').replace(/var\(--gn\)/g,'#15803d');
-function gaSnap(){if(!gaOK())return null;const rs=GX.R,NP=GX.NP,lf=GX.lastFull,T=gtot(rs);T.mt=gMt(rs);
+function gaSnap(){if(!gaOK())return null;const s0=gaSnap0();return s0?gaExtra(s0):null}
+function gaSnap0(){if(!gaOK())return null;const rs=GX.R,NP=GX.NP,lf=GX.lastFull,T=gtot(rs);T.mt=gMt(rs);
  const lastM=T.mm[lf]||0,prevM=lf>0?T.mm[lf-1]:0,ytd=T.m,dL=prevM?gDelta(prevM,lastM):null,idxL=gIdx(T.mt,lf),idxP=lf>0?gIdx(T.mt,lf-1):0;
  const ot=T.mo[lf]?T.mo[lf].size:0,perOT=ot?T.mc[lf]/ot:0;
  const top=(kf,nm)=>gagg(rs.filter(r=>r.p==lf),kf).sort((a,b)=>b.m-a.m).slice(0,5).map(a=>({k:nm(a.k),m:a.mm[lf],d:lf>0?a.mm[lf]-(gagg(rs.filter(r=>r.p==lf-1&&kf(r)==a.k),kf)[0]||{m:0}).m:0}));
  return{rs,NP,lf,T,lastM,prevM,ytd,dL,idxL,idxP,ot,perOT,pl:GX.pln(lf),pp:lf>0?GX.pln(lf-1):'',yr:GX.per[0].slice(0,4),
   cc:top(r=>r.cc,k=>(GX.CCN[k]||k)),ct:top(r=>r.ctn,k=>gTitle(k)),pv:top(r=>r.pv,k=>k),pr:T.mt[lf][0],co:T.mt[lf][1],
-  why:lf>=1?gNarr(rs,lf-1,lf,'cc'):''}}
+  why:'',cmp:'',flt:gFiltTxt(),mx:GS.f.mx===false,pf:null,ev:null}}
+function gaExtra(s){
+ try{const c=gWithCmp(gDefCmp(),S=>S.A.length&&S.B.length&&!S.eq?{t:gNarr(gCmpRows(S),0,1,'cc'),l:S.la+' contra '+S.lb}:null);if(c){s.why=c.t;s.cmp=c.l}}catch(e){console.error(e)}
+ try{const D0=gPfList();if(D0){s.pf={n:D0.totFl,con:D0.flCon,top:D0.arr.filter(x=>x.m>0).slice(0,5)}}}catch(e){console.error(e)}
+ try{const ev=gEvData('pc');if(ev&&ev.L.length){const L=ev.L;s.ev={n:L.length,c:L.filter(u=>u.lv=='Crítico').length,p:L.filter(u=>u.lv=='Problema').length,P:ev.P,top:L.filter(u=>u.lv=='Crítico'||u.lv=='Problema').slice(0,5)}}}catch(e){console.error(e)}
+ return s}
 // ---- WhatsApp
 function gaWa(){const s=gaSnap();if(!s)return[];const L=[`💰 *Gasto de mantenimiento en sucursales*`,`Acumulado ${s.yr}: *${gm(s.ytd)}*`,`Último mes completo (${s.pl}): *${gm(s.lastM)}*${s.dL!=null?` (${s.dL>=0?'▲':'▼'} ${gp(s.dL)} vs ${s.pp})`:''}`,
   `Preventivo ${gm(s.pr)} · Correctivo ${gm(s.co)} · Índice correctivo *${s.idxL.toFixed(0)}%*${s.lf>0?` (antes ${s.idxP.toFixed(0)}%)`:''}`,`OT atendidas: ${fmt(s.ot)} · ${gf(s.perOT)} por OT`,'',`*Sucursales con más gasto en ${s.pl}:*`];
  s.cc.slice(0,5).forEach((a,i)=>L.push(`${i+1}. ${a.k}: ${gm(a.m)}${s.lf>0?` (${a.d>=0?'+':'−'}${gm(Math.abs(a.d))})`:''}`));
- if(s.why){L.push('',`*¿Por qué ${s.dL>=0?'subió':'bajó'} el gasto?*`);const ps=s.why.split('</p>').filter(x=>x.trim());[1,2,3,5].forEach(i=>{if(ps[i])L.push(gaPlain(ps[i]+'</p>').replace(/\n/g,' '))})}
+ if(s.why){L.push('',`*¿Por qué cambió el gasto? ${s.cmp}*`);const ps=s.why.split('</p>').filter(x=>x.trim());[1,2,3,5].forEach(i=>{if(ps[i])L.push(gaPlain(ps[i]+'</p>').replace(/\n/g,' '))})}
+ if(s.pf&&s.pf.top.length){L.push('',`*Gasto por unidad de flota* (gasto ÷ unidades del inventario, ${fmt(s.pf.n)} uds)`);s.pf.top.slice(0,4).forEach((x,i)=>L.push(`${i+1}. ${x.k}: ${gf(x.pf)} por unidad (${gm(x.m)} ÷ ${fmt(x.fl)})`))}
+ if(s.ev&&(s.ev.c||s.ev.p)){L.push('',`*Móviles problema* (${gaD(s.ev.P.a)} a ${gaD(s.ev.P.b)}): ${s.ev.c} críticos · ${s.ev.p} problema`);s.ev.top.slice(0,4).forEach((u,i)=>L.push(`${i+1}. ${u.k} · ${u.md}: ${gm(u.m)} · ${u.dd} días detenida · ${gf(u.cd)}/día operado`))}
+ L.push('',`_Filtros: ${s.flt}${s.mx?' · sin gastos de Matriz':''}_`);
  return L}
 // ---- Correo
-function gaMail(){const s=gaSnap();if(!s)return'';const x=esc,P=[];
+function gaMail(){const s=gaSnap();if(!s)return'';const x=esc,x2=esc,P=[];
  P.push(eH('Gasto de mantenimiento en sucursales'),`<table cellpadding="0" cellspacing="6" style="border-collapse:separate;width:100%"><tr>${eK(gm(s.ytd),'acumulado '+s.yr)}${eK(gm(s.lastM),'gasto '+s.pl,s.dL>0?'#c0392b':'#2f9e44')}${eK(s.dL!=null?gp(s.dL):'–','vs '+(s.pp||'mes previo'),s.dL>0?'#c0392b':'#2f9e44')}${eK(s.idxL.toFixed(0)+'%','índice correctivo')}</tr></table>`);
- if(s.why)P.push(`<div style="background:#f3f6fc;border-left:4px solid ${E.b};padding:8px 14px;margin:8px 0;font-size:13px">${gaCol(s.why).replace(/<p>/g,'<p style="margin:0 0 8px">')}</div>`);
+ if(s.why)P.push(`<p style="margin:10px 0 2px;font-weight:700">¿Por qué cambió el gasto? <span style="font-weight:400;color:#64748b">${x(s.cmp)}</span></p>`,`<div style="background:#f3f6fc;border-left:4px solid ${E.b};padding:8px 14px;margin:8px 0;font-size:13px">${gaCol(s.why).replace(/<p>/g,'<p style="margin:0 0 8px">')}</div>`);
+ if(s.pf&&s.pf.top.length)P.push(`<p style="margin:12px 0 4px;font-weight:700">Gasto por unidad de flota <span style="font-weight:400;color:#64748b">(gasto ÷ unidades del inventario)</span></p>`,eT(['Tipo de unidad','Flota','Gasto','$ por unidad'],s.pf.top.map(x=>[x2(x.k),fmt(x.fl),gm(x.m),gf(x.pf)])));
+ if(s.ev&&(s.ev.c||s.ev.p))P.push(`<p style="margin:12px 0 4px;font-weight:700">Móviles problema <span style="font-weight:400;color:#64748b">(${gaD(s.ev.P.a)} a ${gaD(s.ev.P.b)} · ${s.ev.c} críticos, ${s.ev.p} problema)</span></p>`,eT(['Móvil','Modelo','Gasto','Días detenida','$ por día operado'],s.ev.top.map(u=>[x2(u.k),x2(u.md),gm(u.m),String(u.dd),gf(u.cd)])));
  P.push(eT(['Sucursal','Gasto '+s.pl,'Cambio vs '+(s.pp||'previo')],s.cc.map(a=>[x(a.k),gf(a.m),`<span style="color:${a.d>0?'#b91c1c':'#15803d'}">${a.d>=0?'+':'−'}${gf(Math.abs(a.d))}</span>`])),eT(['Concepto (cuenta)','Gasto '+s.pl,'Cambio'],s.ct.map(a=>[x(a.k),gf(a.m),`<span style="color:${a.d>0?'#b91c1c':'#15803d'}">${a.d>=0?'+':'−'}${gf(Math.abs(a.d))}</span>`])));
+ P.push(`<p style="font-size:11px;color:#64748b">Filtros: ${x(s.flt)}${s.mx?' · sin gastos de Matriz':''}</p>`);
  return P.join('')}
 // ---- Presentación
 function gaSlides(f,t,esc2,hb){if(!gaOK())return[];const a=f.slice(0,7),b=t.slice(0,7),ix=GX.per.map((p,i)=>i).filter(i=>GX.per[i]>=a&&GX.per[i]<=b);if(!ix.length)return[];
@@ -1955,12 +1977,22 @@ function gaSlides(f,t,esc2,hb){if(!gaOK())return[];const a=f.slice(0,7),b=t.slic
  const full=ix.filter(i=>!(GX.partial&&i==GX.NP-1)),B=full.length?full[full.length-1]:ix[ix.length-1],A=B-1;
  const ot=new Set();rs.forEach(r=>{if(r.ot>=0)ot.add(r.ot)});const S=[];
  S.push(`<h2>Gasto de mantenimiento en sucursales</h2><div class="kp"><div><b>${gm(tot)}</b>gasto del periodo</div><div><b>${gm(co)}</b>correctivo (${tot?(100*co/(co+pr||1)).toFixed(0):0}%)</div><div><b>${gm(pr)}</b>preventivo</div><div><b>${fmt(ot.size)}</b>órdenes de trabajo</div></div>${hb(ix.map(i=>({k:GX.pls(i)+(GX.partial&&i==GX.NP-1?'*':''),m:T.mm[i]})),x=>x.m,x=>gm(x.m))}<p class="nt">Gasto facturado por mes${GX.partial&&ix.includes(GX.NP-1)?' · * mes en curso, parcial':''}.</p>`);
- if(A>=0&&ix.includes(A)){S.push(`<h2>¿Por qué cambió el gasto en ${esc2(GX.pln(B))}?</h2><div style="font-size:clamp(14px,1.9vh,20px);line-height:1.5">${gaCol(gNarr(GX.R,A,B,'cc')).replace(/<p>/g,'<p style="margin:0 0 1.2vh">')}</div>`)}
+ try{const c=gWithCmp(gDefCmp(),S2=>S2.A.length&&S2.B.length&&!S2.eq?{t:gNarr(gCmpRows(S2),0,1,'cc'),l:S2.la+' contra '+S2.lb}:null);if(c)S.push(`<h2>¿Por qué cambió el gasto?</h2><p class="nt" style="margin:0 0 1vh">${esc2(c.l)}</p><div style="font-size:clamp(14px,1.9vh,20px);line-height:1.5">${gaCol(c.t).replace(/<p>/g,'<p style="margin:0 0 1.2vh">')}</div>`)}catch(e){console.error(e)}
  const ccs=gagg(rs,r=>r.cc).sort((x,y)=>y.m-x.m).slice(0,8),cts=gagg(rs,r=>r.ctn).sort((x,y)=>y.m-x.m).slice(0,8);
  S.push(`<h2>Dónde se gasta</h2><div class="two"><div><h4>Sucursales</h4>${hb(ccs.map(x=>({k:GX.CCN[x.k]||x.k,m:x.m})),x=>x.m,x=>gm(x.m))}</div><div><h4>Conceptos</h4>${hb(cts.map(x=>({k:gTitle(x.k),m:x.m})),x=>x.m,x=>gm(x.m))}</div></div>`);
+ try{const D0=gPfList();if(D0){const tp=D0.arr.filter(x=>x.m>0).slice(0,8);if(tp.length)S.push(`<h2>Gasto por unidad de flota</h2>${hb(tp.map(x=>({k:x.k,m:x.pf,t:gm(x.m)+' ÷ '+fmt(x.fl)})),x=>x.m,x=>gf(x.m)+' · '+x.t)}<p class="nt">Gasto del periodo ÷ unidades del inventario (${fmt(D0.totFl)} uds), no solo las que fallaron.</p>`)}}catch(e){console.error(e)}
+ try{const ev=gEvData('pc');if(ev&&ev.L.length){const tp=ev.L.filter(u=>u.lv=='Crítico'||u.lv=='Problema').slice(0,8);if(tp.length)S.push(`<h2>Móviles problema</h2><div class="kp"><div><b>${ev.L.filter(u=>u.lv=='Crítico').length}</b>críticos</div><div><b>${ev.L.filter(u=>u.lv=='Problema').length}</b>problema</div><div><b>${ev.L.filter(u=>u.lv=='Vigilar').length}</b>a vigilar</div><div><b>${fmt(ev.L.length)}</b>evaluados</div></div>${hb(tp.map(u=>({k:u.k+' · '+u.md,m:u.m,t:u.dd+' días detenida'})),x=>x.m,x=>gm(x.m)+' · '+x.t)}<p class="nt">Gasto, días detenida, recurrencia y costo por día operado (${gaD(ev.P.a)} a ${gaD(ev.P.b)}).</p>`)}}catch(e){console.error(e)}
+ if(GS.f.mx===false)S.push(`<p class="nt">Cifras sin gastos de Matriz.</p>`);
  return S}
 // ---- Paquetín
-function gaAnswer(raw,q,rg){if(!/gast|presupuesto|factur|costo de mantenimiento/.test(q)||/renta/.test(q))return null;
+function gaAnswer(raw,q,rg){
+ if(gaOK()&&/(moviles?|unidades?) problema|peores? (moviles?|unidades?)|evaluacion de (moviles?|unidades?)|mas problem/.test(q)){const ev=gEvData('pc'),T=ev.L.filter(u=>u.lv=='Crítico'||u.lv=='Problema').slice(0,10);
+  if(!T.length)return{h:'No hay móviles en nivel Crítico o Problema con el filtro actual.'};
+  return{h:`<b>Móviles problema</b> (${gaD(ev.P.a)} a ${gaD(ev.P.b)}): ${ev.L.filter(u=>u.lv=='Crítico').length} críticos y ${ev.L.filter(u=>u.lv=='Problema').length} en problema de ${fmt(ev.L.length)} evaluados.`+paqTbl(['Móvil','Modelo','Gasto','Días detenida','$/día operado','Nivel'],T.map(u=>[esc(u.k),esc(u.md),gm(u.m),String(u.dd),gf(u.cd),u.lv])),x:{name:'Moviles_problema',rows:T.map(u=>({Móvil:u.k,Modelo:u.md,Gasto:Math.round(u.m),'Días detenida':u.dd,'Costo por día operado':Math.round(u.cd),Nivel:u.lv}))}}}
+ if(gaOK()&&/por unidad de flota|proporcion de (la )?flota|gasto por (tipo|modelo) de unidad|gasto por unidad/.test(q)){const D0=gPfList();
+  if(!D0)return{h:'Aún no hay inventario cargado para dividir el gasto entre la flota.'};const T=D0.arr.filter(x=>x.m>0).slice(0,10);
+  return{h:`<b>Gasto por unidad de flota</b> (gasto del filtro ÷ unidades del inventario, ${fmt(D0.totFl)} uds en total).`+paqTbl(['Tipo de unidad','Flota','Gasto','$ por unidad'],T.map(x=>[esc(x.k),fmt(x.fl),gm(x.m),gf(x.pf)])),x:{name:'Gasto_por_flota',rows:T.map(x=>({'Tipo de unidad':x.k,Flota:x.fl,Gasto:Math.round(x.m),'$ por unidad de flota':Math.round(x.pf)}))}}}
+ if(!/gast|presupuesto|factur|costo de mantenimiento/.test(q)||/renta/.test(q))return null;
  if(!gaOK())return{h:'Todavía no hay gastos cargados. El administrador debe subir el Excel <b>Gasto_Mtto_Sucursales</b> desde «Cargar archivos».'};
  let B=GX.lastFull;if(rg&&rg.l!='hoy'){const i=GX.per.indexOf(rg.f.slice(0,7));if(i>=0)B=i}
  const A=B-1,cc=G.cc.find(c=>q.includes(String(c[0]).toLowerCase())),rs=cc?GX.R.filter(r=>r.cc==cc[0]):GX.R,T=gtot(rs);T.mt=gMt(rs);
@@ -2041,8 +2073,8 @@ function gXlsBuild(){
   const T=gtot(R);T.mt=gMt(R);gRes();const RS=GX._res,hs=GX._hs||[];
   const B=new XW.Book({title:'Gasto de mantenimiento · Sucursales',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Gasto de mantenimiento'});
   const sub=`Facturado neto sin IVA · Oracle Fusion · actualizado al ${G.gen} · Filtros: ${gFiltTxt()}${GX.partial?' · '+GX.pln(NP-1)+' parcial (*)':''}`;
-  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',ut:'Tipo de unidad',pv:'Proveedores',un:'Unidades',var:'Variación'};
-  const W={};const tabs={res:XC.navy,mes:XC.blue,cc:XC.blue,cta:XC.blue,sis:XC.blue,pc:XC.gn,ut:XC.gn,pv:XC.or,un:XC.rd,var:XC.rd};
+  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',ut:'Tipo de unidad',pv:'Proveedores',un:'Unidades',var:'Variación',flota:'Gasto por flota',ev:'Evaluación'};
+  const W={};const tabs={res:XC.navy,mes:XC.blue,cc:XC.blue,cta:XC.blue,sis:XC.blue,pc:XC.gn,ut:XC.gn,pv:XC.or,un:XC.rd,var:XC.rd,flota:XC.gn,ev:XC.rd};
   Object.keys(names).forEach(k=>W[k]=B.sheet(names[k],{grid:false,tab:tabs[k],zoom:k=='res'?95:100}));
   const mcols=(get)=>GX.per.map((p,i)=>({h:per[i],w:11.5,t:'money',k:get(i)}));
   // ---- Mensual
@@ -2089,16 +2121,15 @@ function gXlsBuild(){
     ws.chart({type:'bar',title:'Las 10 sucursales con mayor índice correctivo',colors:['E0364A'],labels:true,lblFmt:'0%',gap:40,series:[{name:1,nameRow:5,valCol:5,catCol:1,r1:6,r2:15}]},5,9,620,360)}
   // ---- Tipo de unidad
   {const ws=W.ut;xBanner(ws,'Gasto por tipo de unidad · preventivo y correctivo',sub,12);const nf=NP-(GX.partial?1:0)||1;
-    const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);const mdAll=gUtRows(R,r=>r.md);const mdCat={};R.forEach(r=>mdCat[r.md]=r.ut);mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0});
-    cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0});
-    const cols=(h0)=>[{h:h0,w:34,k:a=>a.k,b:1},{h:'Preventivo',w:15,t:'money',k:a=>a.pre},{h:'Correctivo',w:15,t:'money',k:a=>a.cor},{h:'Sin OT',w:13,t:'money',k:a=>a.sin},{h:'Total',w:15,t:'money',k:a=>a.m,b:1},{h:'% correctivo',w:12,t:'pct',k:a=>a.idx/100},{h:'Unidades con gasto',w:12,t:'int',k:a=>a.uni},{h:'$ por unidad',w:13,t:'money',k:a=>a.pu},{h:'OT',w:9,t:'int',k:a=>a.nOT},{h:'$ por OT',w:12,t:'money',k:a=>a.pOT},{h:'Flota (inventario)',w:12,t:'int',k:a=>a.fl||null},{h:'$ por unidad de flota / mes',w:15,t:'money',k:a=>a.pfm||null}];
+    const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);const mdAll=gUtRows(R,r=>r.md);const mdCat={};R.forEach(r=>mdCat[r.md]=r.ut);mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0;x.pf=x.fl?x.m/x.fl:0});
+    cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0;c.pf=fl?c.m/fl:0});
+    const cols=(h0)=>[{h:h0,w:34,k:a=>a.k,b:1},{h:'Preventivo',w:15,t:'money',k:a=>a.pre},{h:'Correctivo',w:15,t:'money',k:a=>a.cor},{h:'Sin OT',w:13,t:'money',k:a=>a.sin},{h:'Total',w:15,t:'money',k:a=>a.m,b:1},{h:'% correctivo',w:12,t:'pct',k:a=>a.idx/100},{h:'Unidades con gasto',w:12,t:'int',k:a=>a.uni},{h:'$ por unidad',w:13,t:'money',k:a=>a.pu},{h:'OT',w:9,t:'int',k:a=>a.nOT},{h:'$ por OT',w:12,t:'money',k:a=>a.pOT},{h:'Flota (inventario)',w:12,t:'int',k:a=>a.fl||null},{h:'$ por unidad de flota (periodo)',w:16,t:'money',k:a=>a.pf||null},{h:'$ por unidad de flota / mes',w:15,t:'money',k:a=>a.pfm||null}];
     const c1=cols('Tipo de unidad');const t1=xTable(ws,5,c1,cats);
     ws.dataBar(`E6:E${t1.r2}`,'7FA8FF');ws.scale3(`F6:F${t1.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.dataBar(`C6:C${t1.r2}`,'9ADFC0');ws.dataBar(`D6:D${t1.r2}`,'F6A5AD');
     xTotal(ws,t1.r2+1,c1,6,t1.r2,{1:{vals:cats.map(a=>a.pre)},2:{vals:cats.map(a=>a.cor)},3:{vals:cats.map(a=>a.sin)},4:{vals:cats.map(a=>a.m)}});
     ws.chart({type:'bar',stack:true,title:'Preventivo vs correctivo por tipo de unidad',legend:'b',colors:['1DA86A','E0364A','8A99B8'],gap:40,axFmt:'$#,##0,,"M"',series:[2,3,4].map(c=>({name:1,nameRow:5,valCol:c,catCol:1,r1:6,r2:t1.r2}))},t1.r2+4,1,720,380);
-    const r0=t1.r2+25;ws.set(r0-1,1,'Detalle por modelo',{b:1,sz:12,fc:XC.navy});
-    const ms=mdAll.sort((a,b)=>b.m-a.m);const c2=cols('Modelo');const t2=xTable(ws,r0,c2,ms);
-    ws.dataBar(`E${r0+1}:E${t2.r2}`,'7FA8FF');ws.scale3(`F${r0+1}:F${t2.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.freeze(5,1)}
+    if(!GX.nFU){const r0=t1.r2+25;ws.set(r0-1,1,'Detalle por modelo',{b:1,sz:12,fc:XC.navy});const ms=mdAll.sort((a,b)=>b.m-a.m);const c2=cols('Modelo');const t2=xTable(ws,r0,c2,ms);ws.dataBar(`E${r0+1}:E${t2.r2}`,'7FA8FF');ws.scale3(`F${r0+1}:F${t2.r2}`,'B7E4C7','FFE9A8','F8B4BA')}
+    ws.freeze(5,1)}
   // ---- Proveedores
   let tP;const pv=gagg(R,r=>r.pv).sort((a,b)=>b.m-a.m);{const ws=W.pv;xBanner(ws,'Concentración de proveedores',sub,8);let acc=0;pv.forEach(a=>{acc+=a.m;a.ac=acc/T.m});
     const cols=[{h:'#',w:6,t:'int',k:(a,j)=>j+1},{h:'Proveedor',w:46,k:a=>a.k,b:1},{h:'Gasto',w:16,t:'money',k:a=>a.m,b:1},{h:'% del total',w:11,t:'pct',k:a=>a.m/T.m},{h:'% acumulado',w:12,t:'pct',k:a=>a.ac},{h:'OC',w:9,t:'int',k:a=>a.oc.size},{h:'OT',w:9,t:'int',k:a=>a.ot.size},{h:'Ticket por OC',w:14,t:'money',k:a=>a.oc.size?a.m/a.oc.size:0},{h:`${GX.pls(lf)}`,w:13,t:'money',k:a=>a.mm[lf]}];
@@ -2111,8 +2142,8 @@ function gXlsBuild(){
     const cols=[{h:'#',w:6,t:'int',k:(a,j)=>j+1},{h:'Unidad',w:12,k:a=>a.k,b:1},{h:'Descripción',w:32,k:a=>a.desc},{h:'Sucursal',w:10,k:a=>a.cc},{h:'Gasto',w:15,t:'money',k:a=>a.m,b:1},{h:'OT',w:8,t:'int',k:a=>a.ot.size},{h:'$ por OT',w:13,t:'money',k:a=>a.ot.size?(a.tp[0]+a.tp[1])/a.ot.size:0},{h:'Índice correctivo',w:12,t:'pct',k:a=>a.tp[0]+a.tp[1]?a.tp[1]/(a.tp[0]+a.tp[1]):0},{h:'Veces detenida',w:12,t:'int',k:a=>a.inm},{h:'Días inmovilizada',w:13,t:'int',k:a=>a.dias},{h:'Hoy',w:11,k:a=>a.hoy,a:'center'}];
     const t=xTable(ws,5,cols,un);ws.dataBar(`E6:E${t.r2}`,'F6A5AD');ws.cell(`I6:I${t.r2}`,'greaterThanOrEqual','2',{fc:'9C0006',bg:'FFC7CE',b:1});ws.dataBar(`J6:J${t.r2}`,'FFD08A');ws.cell(`K6:K${t.r2}`,'equal','"Detenida"',{fc:'9C0006',bg:'FFC7CE',b:1});ws.filter(5,1,t.r2,11);ws.freeze(5,3)}
   // ---- Variación
-  {const ws=W.var;xBanner(ws,`¿Por qué cambió? ${GX.pln(A)} → ${GX.pln(Bm)}`,sub,9);
-    ws.set(4,1,GX.partial&&(A==NP-1||Bm==NP-1)?`⚠ ${GX.pln(NP-1)} es parcial: la comparación no es justa.`:`Comparación de meses completos. Rojo = gastó más · verde = gastó menos.`,{i:1,sz:9.5,fc:XC.mu});
+  gWithCmp(null,S=>{const R=S.A.length&&S.B.length?gCmpRows(S):[],A=0,Bm=1;const ws=W.var;xBanner(ws,`¿Por qué cambió? ${GX.pln(A)} → ${GX.pln(Bm)}`,sub,9);
+    ws.set(4,1,(gPlain(S.warn)||'Rojo = gastó más · verde = gastó menos.')+' · Compara '+S.la+' contra '+S.lb+'.',{i:1,sz:9.5,fc:XC.mu});
     const mk=(dim,r0,c0,title,lim)=>{const it=gagg(R,GDIM[dim][1]).map(a=>({k:a.k,a:a.mm[A],b:a.mm[Bm],d:a.mm[Bm]-a.mm[A]})).filter(x=>x.a||x.b).sort((x,y)=>Math.abs(y.d)-Math.abs(x.d)).slice(0,lim);
       ws.set(r0-1,c0,title,{b:1,sz:12,fc:XC.navy});const cols=[{h:GDIM[dim][0],w:36,k:x=>GDIM[dim][2](x.k),b:1},{h:GX.pln(A),w:14,t:'money',k:x=>x.a},{h:GX.pln(Bm),w:14,t:'money',k:x=>x.b},{h:'Δ $',w:14,t:'money',k:x=>x.d,b:1},{h:'Δ %',w:10,t:'pct',k:x=>x.a?x.d/x.a:null}];
       const sh=ws;const t=(function(){cols.forEach((c,i)=>{ws.set(r0,c0+i,c.h,{b:1,sz:10,fc:XC.w,bg:XC.navy,h:'center',wrap:1,bd:{b:['medium',XC.or]}});if(c0==1&&c.w)ws.widths[c0+i]=c.w});
@@ -2120,7 +2151,22 @@ function gXlsBuild(){
       const L=XW.col(c0+3);ws.dataBar(`${L}${t.r1}:${L}${t.r2}`,'F6A5AD');ws.cell(`${L}${t.r1}:${L}${t.r2}`,'greaterThan','0',{fc:'9C0006',b:1});ws.cell(`${L}${t.r1}:${L}${t.r2}`,'lessThan','0',{fc:'1D6F42',b:1});return t};
     const t1=mk('cc',7,1,'Por sucursal (25 con mayor cambio)',25);mk('ctn',t1.r2+4,1,'Por cuenta (20 con mayor cambio)',20);
     const T0=gtot(R),na=T0.mo[A].size,nb=T0.mo[Bm].size,aa=na?T0.mc[A]/na:0,ab=nb?T0.mc[Bm]/nb:0;
-    ws.set(6,8,'Descomposición total',{b:1,sz:12,fc:XC.navy});[['Gasto '+GX.pln(A),T0.mm[A]],['Gasto '+GX.pln(Bm),T0.mm[Bm]],['Diferencia',T0.mm[Bm]-T0.mm[A]],['Efecto volumen (más/menos OT)',(nb-na)*aa],['Efecto costo por OT',nb*(ab-aa)],['Efecto gasto sin OT',(T0.mm[Bm]-T0.mc[Bm])-(T0.mm[A]-T0.mc[A])]].forEach((q,j)=>{ws.set(7+j,8,q[0],{sz:10,b:j==2,bd:{b:['thin',XC.bd]}});ws.set(7+j,9,q[1],{sz:10,b:j==2,nf:'$#,##0;[Red]-$#,##0',bd:{b:['thin',XC.bd]}})});ws.widths[8]=34;ws.widths[9]=16;ws.freeze(5,0)}
+    ws.set(6,8,'Descomposición total',{b:1,sz:12,fc:XC.navy});[['Gasto '+GX.pln(A),T0.mm[A]],['Gasto '+GX.pln(Bm),T0.mm[Bm]],['Diferencia',T0.mm[Bm]-T0.mm[A]],['Efecto volumen (más/menos OT)',(nb-na)*aa],['Efecto costo por OT',nb*(ab-aa)],['Efecto gasto sin OT',(T0.mm[Bm]-T0.mc[Bm])-(T0.mm[A]-T0.mc[A])]].forEach((q,j)=>{ws.set(7+j,8,q[0],{sz:10,b:j==2,bd:{b:['thin',XC.bd]}});ws.set(7+j,9,q[1],{sz:10,b:j==2,nf:'$#,##0;[Red]-$#,##0',bd:{b:['thin',XC.bd]}})});ws.widths[8]=34;ws.widths[9]=16;ws.freeze(5,0)});
+  // ---- Gasto por proporción de flota
+  {const ws=W.flota;xBanner(ws,'Gasto por proporción de flota',sub,9);const D0=gPfList();
+    if(!D0){ws.set(4,1,'Aún no hay inventario cargado: no se puede dividir el gasto entre las unidades de la flota.',{i:1,sz:10,fc:XC.mu})}
+    else{ws.set(4,1,`Gasto del filtro ÷ unidades del inventario. Inventario: ${D0.totFl} unidades en ${D0.ks.length} modelos · ${D0.flCon} con gasto y ${D0.totFl-D0.flCon} sin gasto.${D0.out.length?' Fuera del inventario (no entra): '+D0.out.length+' tipos por $'+Math.round(D0.mOut).toLocaleString('es-MX')+'.':''}`,{i:1,sz:9.5,fc:XC.mu});
+      const cols=[{h:'Tipo de unidad / modelo',w:34,k:a=>a.k,b:1},{h:'Flota (inventario)',w:13,t:'int',k:a=>a.fl},{h:'Gasto del periodo',w:16,t:'money',k:a=>a.m,b:1},{h:'Preventivo',w:15,t:'money',k:a=>a.pre},{h:'Correctivo',w:15,t:'money',k:a=>a.cor},{h:'$ por unidad de flota (periodo)',w:17,t:'money',k:a=>a.pf,b:1},{h:'$ por unidad de flota / mes',w:16,t:'money',k:a=>a.pfm}];
+      const t=xTable(ws,5,cols,D0.arr);ws.dataBar(`F${t.r1||6}:F${t.r2}`,'7FA8FF');ws.scale3(`F6:F${t.r2}`,'B7E4C7','FFE9A8','F8B4BA');ws.filter(5,1,t.r2,cols.length);ws.freeze(5,1);
+      xTotal(ws,t.r2+1,cols,6,t.r2,{1:{vals:D0.arr.map(a=>a.fl)},2:{vals:D0.arr.map(a=>a.m)},3:{vals:D0.arr.map(a=>a.pre)},4:{vals:D0.arr.map(a=>a.cor)}});
+      ws.chart({type:'bar',title:'Los 12 con más gasto por unidad de flota',colors:['2F6BFF'],labels:true,lblFmt:'$#,##0',gap:40,series:[{name:1,nameRow:5,valCol:6,catCol:1,r1:6,r2:17}]},t.r2+4,1,680,380)}}
+  // ---- Evaluación de móviles
+  {const ws=W.ev;xBanner(ws,'Evaluación de móviles · móviles problema',sub,17);let ev=null;try{ev=gEvData('pc')}catch(e){console.error(e)}
+    if(!ev||!ev.L.length){ws.set(4,1,'Sin unidades con gasto en el filtro (o falta el seguimiento de inmovilizados).',{i:1,sz:10,fc:XC.mu})}
+    else{const {L,P}=ev;ws.set(4,1,`Periodo ${gaD(P.a)} a ${gaD(P.b)} · preventivo + correctivo · ${L.length} móviles evaluados (se listan los 300 con peor puntaje) · Crítico ${L.filter(u=>u.lv=='Crítico').length} · Problema ${L.filter(u=>u.lv=='Problema').length} · Vigilar ${L.filter(u=>u.lv=='Vigilar').length}`,{i:1,sz:9.5,fc:XC.mu});
+      const cols=[{h:'#',w:6,t:'int',k:(a,j)=>j+1},{h:'Móvil',w:12,k:u=>u.k,b:1},{h:'Modelo',w:26,k:u=>u.md},{h:'Sucursal',w:26,k:u=>GX.CCN[u.cc]||u.cc},{h:'Gasto',w:15,t:'money',k:u=>u.m,b:1},{h:'Preventivo',w:14,t:'money',k:u=>u.pr},{h:'Correctivo',w:14,t:'money',k:u=>u.co},{h:'% correctivo',w:11,t:'pct',k:u=>u.ix/100},{h:'Días detenida',w:10,t:'int',k:u=>u.dd},{h:'Días que operó',w:10,t:'int',k:u=>u.op},{h:'Costo por día operado',w:14,t:'money',k:u=>u.cd},{h:'Veces detenida',w:10,t:'int',k:u=>u.ev},{h:'Falla principal',w:30,k:u=>u.fp},{h:'Fallas repetidas',w:10,t:'int',k:u=>u.rep},{h:'Puntaje',w:9,t:'int',k:u=>Math.round(u.sc)},{h:'Nivel',w:11,k:u=>u.lv,b:1},{h:'Señales',w:70,k:u=>u.flags.map(f=>f[1]).join(' | ')}];
+      const t=xTable(ws,5,cols,L.slice(0,300));ws.dataBar(`E6:E${t.r2}`,'F6A5AD');ws.dataBar(`K6:K${t.r2}`,'FFD08A');ws.scale3(`O6:O${t.r2}`,'B7E4C7','FFE9A8','F8B4BA');
+      ws.cell(`P6:P${t.r2}`,'equal','"Crítico"',{fc:'9C0006',bg:'FFC7CE',b:1});ws.cell(`P6:P${t.r2}`,'equal','"Problema"',{fc:'9C5700',bg:'FFEB9C',b:1});ws.filter(5,1,t.r2,cols.length);ws.freeze(5,2)}}
   // ---- Resumen
   {const ws=W.res;ws.widths[1]=2.5;for(let c=2;c<=13;c++)ws.widths[c]=13;
     xBanner(ws,'GASTO DE MANTENIMIENTO · REPORTE EJECUTIVO','',13);ws.set(2,1,'Mantenimiento de Activos Logísticos · Paquetexpress · '+sub,{sz:10.5,fc:'BFD0F5',bg:XC.navy,h:'left',ind:1});
@@ -2143,7 +2189,7 @@ function gXlsBuild(){
     ws.chart({type:'bar',title:'Top 10 sucursales por gasto',colors:['2F6BFF'],labels:true,lblFmt:'$#,##0,,"M"',gap:40,sheetRef:names.cc,series:[{name:1,nameRow:5,valCol:4+NP,catCol:1,r1:6,r2:15}]},r,8,590,300);r+=16;
     const lines=(arr,color)=>arr.forEach((t,i)=>{const L=Math.max(1,Math.ceil(t.length/118));ws.set(r,2,`${i+1}.  ${t}`,{sz:10.5,bg:XC.bg,wrap:1,h:'left',v:'center',ind:1,bd:{l:['thick',color]}}).fill(r,3,r,13,{bg:XC.bg}).merge(r,2,r,13).rowH(r,Math.max(24,17*L+8));r++;ws.rowH(r,5);r++});
     sec('HALLAZGOS');lines(hs.map(gPlain),XC.blue);r++;
-    sec('ÍNDICE DE HOJAS');const desc={mes:'Gasto, índice correctivo y OT mes a mes',cc:'Matriz sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',ut:'Gasto preventivo y correctivo por tipo de unidad y modelo',pv:'Concentración y ticket por proveedor',un:'500 unidades con mayor gasto y su cruce con paros',var:'Qué explica el cambio entre dos meses'};
+    sec('ÍNDICE DE HOJAS');const desc={mes:'Gasto, índice correctivo y OT mes a mes',cc:'Matriz sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',ut:'Gasto preventivo y correctivo por tipo de unidad y modelo',pv:'Concentración y ticket por proveedor',un:'500 unidades con mayor gasto y su cruce con paros',var:'Qué explica el cambio entre los dos periodos que compares (mes, año o periodo)',flota:'Gasto ÷ unidades del inventario, por tipo/modelo',ev:'Móviles con peor evaluación: gasto, días detenida y costo por día'};
     Object.keys(W).filter(k=>k!='res').forEach(k=>{ws.set(r,2,names[k],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,names[k],'A1');ws.set(r,4,desc[k],{sz:10,fc:XC.mu});r++});
     r++;ws.set(r,2,`Generado por el Portal Flota Inmovilizada · ${new Date().toLocaleString('es-MX')}`,{i:1,sz:9,fc:XC.mu})}
   return B}
