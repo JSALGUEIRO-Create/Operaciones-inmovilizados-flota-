@@ -747,9 +747,11 @@ function presHtml(f,t){const E=D.filter(r=>inRange(r,f,t)),dI=r=>daysIn(r,f,t),d
  const rec=grp(E,11).filter(x=>x.n>=3).sort((a,b)=>b.n-a.n),top=[...E].sort((a,b)=>dI(b)-dI(a)),ft=g(5),rgs=g(2),sc=g(1),tp=g(3);
  const pie=(L,tot)=>L.map(x=>`<span class="pl"><i></i>${esc2(x.k)} <b>${tot?(100*x.d/tot).toFixed(0):0}%</b></span>`).join('');
  const concl=[ft[0]?`<b>${esc2(ft[0].k)}</b> concentra ${(100*ft[0].d/Math.max(1,dias)).toFixed(0)}% de los días-unidad detenidos (${ft[0].n} eventos).`:'',rgs[0]?`La región <b>${esc2(rgs[0].k)}</b> acumula ${(100*rgs[0].d/Math.max(1,dias)).toFixed(0)}% de los días y la sucursal <b>${esc2(sc[0].k)}</b> lidera con ${fmt(sc[0].d)} días.`:'',`El tiempo promedio de resolución de las unidades que salieron fue de <b>${prom.toFixed(1)} días</b>.`,rec.length?`<b>${rec.length}</b> unidades reinciden (3+ eventos): requieren análisis de causa raíz, encabeza ${esc2(rec[0].k)} con ${rec[0].n}.`:'No hay unidades con reincidencia de 3 o más eventos en el periodo.',R.length?`Las rentas sustitutas sumaron <b>${R.length}</b> (${rd} días) con un gasto de <b>${mny(gas)}</b>.`:'',`Hoy hay <b>${hoy.length}</b> unidades detenidas en taller.`].filter(Boolean);
+ try{if(typeof gaHalls=='function')gaHalls().h.slice(0,4).forEach(x=>concl.push(esc2(x)))}catch(e){}
  const S=[];
  S.push(`<div class="cover">${logo?`<img src="${logo}" class="clogo">`:''}<h1>INMOVILIZADOS<br>OPERACIONES PAQUETEXPRESS</h1><h2>Dirección General de Operaciones y Logística</h2><h3>Mantenimiento de Activos Logísticos</h3><p class="per">Periodo: ${P()}</p></div>`);
  S.push(`<h2>Resumen ejecutivo</h2><div class="kp"><div><b>${fmt(E.length)}</b>eventos de inmovilización</div><div><b>${fmt(dias)}</b>días-unidad detenidos</div><div><b>${nSuc}</b>sucursales con eventos</div><div><b>${prom.toFixed(1)}</b>días promedio de resolución</div><div><b>${hoy.length}</b>detenidas hoy (al corte)</div><div><b>${fmt(dias/nd)}</b>unidades detenidas en promedio por día</div></div>`);
+ try{(typeof gaSlides=='function'?gaSlides(f,t,esc2,hb):[]).forEach(x=>S.push(x))}catch(e){console.error(e)}
  S.push(`<h2>Tendencia de días detenidos por mes</h2>${svg}<p class="nt">Días-unidad detenidos dentro del periodo, por mes.</p>`);
  S.push(`<h2>Por región</h2>${hb(rgs,x=>x.d)}<p class="nt">Días-unidad detenidos. ${rgs.length?esc2(rgs[0].k)+' encabeza con '+fmt(rgs[0].d)+' días y '+rgs[0].n+' eventos.':''}</p>`);
  S.push(`<h2>Días detenidos por sucursal</h2>${hb(sc,x=>x.d)}`);
@@ -759,7 +761,6 @@ function presHtml(f,t){const E=D.filter(r=>inRange(r,f,t)),dI=r=>daysIn(r,f,t),d
  S.push(`<h2>Unidades recurrentes</h2>${rec.length?hb(rec,x=>x.n):'<p class="nt big">Sin unidades con 3 o más eventos en el periodo.</p>'}`);
  if(R.length)S.push(`<h2>Rentas de unidades sustitutas</h2><div class="kp"><div><b>${R.length}</b>rentas vigentes en el periodo</div><div><b>${fmt(rd)}</b>días de renta</div><div><b>${mny(gas)}</b>gasto con IVA</div><div><b>${mny(gas/Math.max(1,rd))}</b>costo promedio por día</div></div>${R.length?hb(gR(R,'razon'),x=>x.g,x=>mny(x.g)):''}`);
  if(PV.length)S.push(`<h2>Preventivos registrados</h2><div class="kp"><div><b>${PV.length}</b>servicios preventivos en el periodo</div><div><b>${new Set(PV.map(p=>p.suc)).size}</b>sucursales que los capturaron</div></div><p class="nt">Relación correctivos vs preventivos: ${E.length} correctivos contra ${PV.length} preventivos capturados.</p>`);
- (typeof gaSlides=='function'?gaSlides(f,t,esc2,hb):[]).forEach(x=>S.push(x));
  S.push(`<h2>Conclusiones</h2><ul class="cn">${concl.map(x=>`<li>${x}</li>`).join('')}</ul>`);
  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inmovilizados Operaciones Paquetexpress</title><style>*{box-sizing:border-box}body{margin:0;background:#e8eefc;font-family:system-ui,Segoe UI,Arial,sans-serif;color:#0f172a;overflow:hidden}.sl{display:none;position:absolute;inset:0;padding:5vh 6vw 9vh;overflow:auto}.sl.on{display:block;animation:f .4s}@keyframes f{from{opacity:0;transform:translateY(10px)}}h2{font-size:clamp(24px,3.4vw,40px);color:#0b2a8a;margin:0 0 3vh;border-left:8px solid #f59e0b;padding-left:14px}.cover{height:100%;min-height:100vh;display:flex;flex-direction:column;justify-content:center;color:#fff;margin:-5vh -6vw -9vh;padding:6vh 8vw;background:radial-gradient(ellipse 80% 50% at 80% 0,#5b8dff,transparent),linear-gradient(135deg,#0a3fd6,#0a1f7a)}.clogo{width:min(320px,60%);margin-bottom:5vh}.cover h1{font-size:clamp(30px,5.4vw,66px);margin:0 0 3vh;line-height:1.05;letter-spacing:.02em}.cover h2{color:#cfe0ff;border:0;padding:0;font-size:clamp(16px,2.2vw,26px);margin:0 0 6px}.cover h3{margin:0;color:#fff;font-size:clamp(16px,2.2vw,26px)}.per{margin-top:5vh;display:inline-block;background:#f59e0b;color:#111;font-weight:700;padding:8px 18px;border-radius:999px;align-self:flex-start}.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:2vh}.kp div{background:#fff;border-radius:18px;padding:3vh 22px;box-shadow:0 6px 20px rgba(11,42,138,.12);color:#475569;font-size:15px}.kp b{display:block;font-size:clamp(28px,4vw,48px);color:#0b2a8a;margin-bottom:4px}.hb{display:grid;grid-template-columns:minmax(120px,22%) 1fr 90px;gap:12px;align-items:center;margin:1.2vh 0;font-size:clamp(13px,1.5vw,18px)}.hb div{background:#dbe5ff;border-radius:8px;height:22px}.hb i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#1d4ed8,#3b82f6)}.hb b{text-align:right}.tr{width:100%;max-height:55vh}.nt{color:#475569}.big{font-size:22px}.two{display:grid;grid-template-columns:2fr 1fr;gap:3vw}.side{background:#fff;border-radius:18px;padding:18px}.side h4{margin:6px 0;color:#0b2a8a}.pl{display:block;margin:4px 0}.pl i{display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:50%;margin-right:6px}.tb{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden;font-size:clamp(12px,1.4vw,17px)}.tb th{background:#0b2a8a;color:#fff;text-align:left;padding:10px}.tb td{padding:9px 10px;border-bottom:1px solid #e2e8f0}.cn{font-size:clamp(16px,2vw,24px);line-height:1.6}.cn li{margin:1.4vh 0}.nav{position:fixed;bottom:2vh;left:0;right:0;display:flex;justify-content:center;gap:12px;align-items:center;z-index:5}.nav button{border:0;background:#0b2a8a;color:#fff;border-radius:999px;padding:10px 20px;font-size:16px;cursor:pointer}.nav span{background:#fff;padding:6px 14px;border-radius:999px;font-weight:600}.pg{position:fixed;top:0;left:0;height:5px;background:#f59e0b;z-index:6;transition:width .3s}@media(max-width:700px){.two{grid-template-columns:1fr}.hb{grid-template-columns:90px 1fr 60px}}@media print{body{overflow:visible}.sl{display:block!important;position:relative;page-break-after:always;min-height:100vh}.nav,.pg{display:none}}</style></head><body>${S.map((x,i)=>`<section class="sl${i?'':' on'}">${x}</section>`).join('')}<div class="pg" id="pg"></div><div class="nav"><button onclick="go(-1)">◀</button><span id="ct"></span><button onclick="go(1)">▶</button><button onclick="print()">🖨️ PDF</button></div><`+`script>var s=[].slice.call(document.querySelectorAll('.sl')),i=0;function sh(){s.forEach(function(e,k){e.classList.toggle('on',k==i)});document.getElementById('ct').textContent=(i+1)+' / '+s.length;document.getElementById('pg').style.width=100*(i+1)/s.length+'%'}function go(n){i=Math.min(s.length-1,Math.max(0,i+n));sh()}document.addEventListener('keydown',function(e){if(e.key=='ArrowRight'||e.key==' ')go(1);if(e.key=='ArrowLeft')go(-1)});sh()<`+`/script></body></html>`}
 
@@ -801,8 +802,8 @@ function waTxt(){const H=D.filter(r=>r[6]),FL=fleetSum(),up=FL?((FL-H.length)/FL
  return `*INMOVILIZADOS · Mantenimiento de Activos Logísticos*\nCorte: ${fmtEsLong(TODAY)}\n\n🔴 Detenidas hoy: *${H.length}* (${FL?(H.length/FL*100).toFixed(1):0}% de ${fmt(FL)} unidades de flota)\n${up>=meta?'✅':'⚠️'} Up Time: *${up.toFixed(1)}%* (meta ${meta}%)\n⏳ Con más de 30 días detenidas: ${m30}\n↔️ Últimos 7 días: ${e7} entradas · ${s7} salidas (balance ${s7-e7>0?'+':''}${s7-e7})\n📅 Días-unidad últimos 30 días: ${fmt(d30)} (${d30<=dp?'mejoró':'empeoró'} ${dp?Math.abs((d30-dp)/dp*100).toFixed(0):0}% vs. 30 días previos)\n\n*Por región:*\n${reg.map(g=>`• ${g.k||'Sin región'}: ${g.n}`).join('\n')}\n\n*Top 10 sucursales con más detenidas:*\n${suc.map((g,i)=>`${i+1}. ${g.k}: ${g.n}`).join('\n')}${(typeof gaWa=='function'&&gaWa().length)?'\n\n'+gaWa().join('\n'):''}`}
 function waOpen(){const t=waTxt();fxOpen('💬 Resumen para WhatsApp',`<textarea id="waT" readonly style="width:100%;height:340px;background:var(--bg2);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:10px;font:13px/1.45 ui-monospace,Consolas,monospace;resize:vertical">${esc(t)}</textarea><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="cpTxt(el('waT').value,'Resumen copiado. Pégalo en WhatsApp')">📋 Copiar resumen</button><button onclick="window.open('https://wa.me/?text='+encodeURIComponent(el('waT').value),'_blank')">Abrir WhatsApp</button></div>`);cpTxt(t,'Resumen copiado. Pégalo en WhatsApp')}
 // ---------- Modo junta / pantalla ----------
-const JT={on:false,i:0,secs:20,pause:false,list:[1,4,5,6,8,2,3],t:null,sc:null};
-function jtShow(){go(JT.list[JT.i]);clearInterval(JT.sc);const tabs=document.getElementById('jtTab');if(tabs)tabs.textContent=(JT.i+1)+'/'+JT.list.length+' · '+S[cur][0];
+const JT={on:false,i:0,secs:20,pause:false,list:[1,4,5,6,8,'g0','g1','g5','g10',2,3],t:null,sc:null};
+function jtShow(){const it=JT.list[JT.i],isG=typeof it=='string';go(isG?14:it);if(isG){try{GS.t=+it.slice(1);render()}catch(e){console.error(e)}}clearInterval(JT.sc);const tabs=document.getElementById('jtTab');if(tabs)tabs.textContent=(JT.i+1)+'/'+JT.list.length+' · '+S[cur][0]+(isG?' · '+(typeof GSUB!='undefined'&&GSUB[GS.t]?GSUB[GS.t][1]:''):'');
  setTimeout(()=>{const h=document.documentElement.scrollHeight-innerHeight;if(!JT.on||h<40)return;const t0=Date.now(),dur=JT.secs*800;JT.sc=setInterval(()=>{const p=Math.min(1,(Date.now()-t0)/dur);scrollTo(0,h*p);if(p>=1)clearInterval(JT.sc)},100)},1200)}
 function jtNext(d){JT.i=(JT.i+d+JT.list.length)%JT.list.length;jtShow();jtTimer()}
 function jtTimer(){clearInterval(JT.t);if(!JT.pause&&JT.on)JT.t=setInterval(()=>{JT.i=(JT.i+1)%JT.list.length;jtShow()},JT.secs*1000)}
@@ -1195,7 +1196,7 @@ function xTable(ws,r0,cols,items,opt){opt=opt||{};const hdr={b:1,sz:10,fc:XC.w,b
 function xTotal(ws,r,cols,r1,r2,sums){const sp={b:1,sz:10,bg:XC.lb,bd:{t:['thin',XC.blue],b:['medium',XC.blue]},h:'center'};
  cols.forEach((c,i)=>{const cl=XW.col(i+1);let v=i==0?'TOTAL':null;if(sums[i]){let tot=0;for(let q=0;q<(sums[i].vals||[]).length;q++)tot+=sums[i].vals[q];v={f:`SUM(${cl}${r1}:${cl}${r2})`,v:tot}}ws.set(r,i+1,v,{...sp,nf:'#,##0',h:i==0?'left':'center'})})}
 function xlsReport(d,scope,secs){
- secs=secs||new Set(['res','reg','suc','falla','tipo','ant','es','crit','rec','hall']);const has=k=>secs.has(k);
+ secs=secs||new Set(['res','reg','suc','falla','tipo','ant','es','crit','rec','hall','gas']);const has=k=>secs.has(k);
  const B=new XW.Book({title:'Reporte ejecutivo · Flota inmovilizada',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Flota inmovilizada'});
  const H=d.H,FL=d.FL,up=d.up,pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'–',wd=r=>dsc2(r),cnt=d.cnt||{};
  const REG=(()=>{const L=[...d.reg];if(!CP.suc.size&&!CP.tipo.size&&!CP.falla.size&&!CP.min){const have=new Set(L.map(g=>g.k));[...new Set(D.map(x=>x[2]))].filter(k=>k&&!have.has(k)&&(!CP.reg.size||CP.reg.has(k))).forEach(k=>{const fl=fleetSum(new Set([k]));if(fl)L.push({k,n:0,d:0,mx:0,fl,up:100})})}return L.sort((a,b)=>b.n-a.n||(b.fl||0)-(a.fl||0))})();
@@ -1282,8 +1283,10 @@ function xlsReport(d,scope,secs){
   const lines=(arr,color,pre)=>arr.forEach((t,i)=>{const L=Math.max(1,Math.ceil(t.length/118));ws.set(r,2,`${pre}${i+1}.  ${t}`,{sz:10.5,bg:XC.bg,wrap:1,h:'left',v:'center',ind:1,bd:{l:['thick',color]}}).fill(r,3,r,13,{bg:XC.bg}).merge(r,2,r,13).rowH(r,Math.max(24,17*L+8));r++;ws.rowH(r,5);r++});
   if(has('hall')&&d.hall.length){sec('HALLAZGOS');lines(d.hall,XC.blue,'');r++}
   if(has('hall')&&d.rc.length){sec('RECOMENDACIONES');lines(d.rc,XC.or,'');r++}
+  if(has('gas')&&typeof gXlsBuild=='function'&&typeof gaOK=='function'&&gaOK()){try{gXlsBuild({book:B,prefix:'Gasto · '})}catch(e){console.error(e)}}
   sec('ÍNDICE DE HOJAS');const desc={reg:'Detenidas, flota y Up Time por región',suc:'Ranking completo de sucursales',ft:'Fallas y tipos de unidad',ant:'Antigüedad de las detenidas',det:'Todas las unidades detenidas al corte',crit:'Más de 30 días detenidas',rec:'Reincidentes que siguen detenidas',es:'Entradas y salidas por semana',tr:'Evolución mensual histórica'};
   Object.keys(W).filter(k=>k!='res').forEach(k=>{ws.set(r,2,names[k],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,names[k],'A1');ws.set(r,4,desc[k],{sz:10,fc:XC.mu});r++});
+  (B._gs||[]).forEach(q=>{ws.set(r,2,q[0],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,q[0],'A1');ws.set(r,4,q[1],{sz:10,fc:XC.mu});r++});
   r++;ws.set(r,2,`Generado por el Portal Flota Inmovilizada · ${new Date().toLocaleString('es-MX')} · Datos al corte ${fmtEsLong(TODAY)}`,{i:1,sz:9,fc:XC.mu})}
  return B}
 function xlsName(){return 'Reporte_Ejecutivo_Flota_Inmovilizada_'+TODAY+'.xlsx'}
@@ -1953,6 +1956,16 @@ function gaExtra(s){
  try{const D0=gPfList();if(D0){s.pf={n:D0.totFl,con:D0.flCon,top:D0.arr.filter(x=>x.m>0).slice(0,5)}}}catch(e){console.error(e)}
  try{const ev=gEvData('pc');if(ev&&ev.L.length){const L=ev.L;s.ev={n:L.length,c:L.filter(u=>u.lv=='Crítico').length,p:L.filter(u=>u.lv=='Problema').length,P:ev.P,top:L.filter(u=>u.lv=='Crítico'||u.lv=='Problema').slice(0,5)}}}catch(e){console.error(e)}
  return s}
+// ---- Hallazgos y recomendaciones de gasto (para WhatsApp, correo, Excel general y presentación)
+function gaHalls(){const s=gaSnap();if(!s)return{h:[],r:[]};const h=[],r=[];
+ h.push(`GASTO DE MANTENIMIENTO: ${s.pl} gastó ${gm(s.lastM)}${s.dL!=null?` (${gp(s.dL)} contra ${s.pp})`:''}; acumulado ${s.yr} ${gm(s.ytd)}. El correctivo pesa ${s.idxL.toFixed(0)}% del gasto${s.lf>0?` (antes ${s.idxP.toFixed(0)}%)`:''}.`);
+ if(s.why){const ps=s.why.split('</p>').filter(x=>x.trim());if(ps[1])h.push(`Gasto, ${s.cmp}: `+gaPlain(ps[1]+'</p>').replace(/\*/g,'').replace(/\n/g,' '))}
+ if(s.pf&&s.pf.top.length){const x=s.pf.top[0];h.push(`Gasto por unidad de flota: el tipo más caro es ${x.k} con ${gf(x.pf)} por unidad (${gm(x.m)} ÷ ${fmt(x.fl)} unidades del inventario).`)}
+ if(s.ev&&(s.ev.c||s.ev.p)){const u=s.ev.top[0];h.push(`Evaluación de móviles: ${s.ev.c} críticos y ${s.ev.p} en problema de ${fmt(s.ev.n)} evaluados${u?`; el peor es ${u.k} (${u.md}) con ${gm(u.m)} de gasto y ${u.dd} días detenida`:''}.`);
+  if(s.ev.c)r.push(`Revisar uno por uno los ${s.ev.c} móviles críticos de Gastos › Evaluación y decidir reparación mayor, reemplazo o baja según su costo por día operado.`)}
+ if(s.idxL>=70)r.push(`Reforzar el mantenimiento preventivo: el correctivo ya pesa ${s.idxL.toFixed(0)}% del gasto de ${s.pl}.`);
+ if(s.mx)h.push('Las cifras de gasto no incluyen los gastos de Matriz.');
+ return{h,r}}
 // ---- WhatsApp
 function gaWa(){const s=gaSnap();if(!s)return[];const L=[`💰 *Gasto de mantenimiento en sucursales*`,`Acumulado ${s.yr}: *${gm(s.ytd)}*`,`Último mes completo (${s.pl}): *${gm(s.lastM)}*${s.dL!=null?` (${s.dL>=0?'▲':'▼'} ${gp(s.dL)} vs ${s.pp})`:''}`,
   `Preventivo ${gm(s.pr)} · Correctivo ${gm(s.co)} · Índice correctivo *${s.idxL.toFixed(0)}%*${s.lf>0?` (antes ${s.idxP.toFixed(0)}%)`:''}`,`OT atendidas: ${fmt(s.ot)} · ${gf(s.perOT)} por OT`,'',`*Sucursales con más gasto en ${s.pl}:*`];
@@ -2068,14 +2081,15 @@ function gEvXls(){try{const ev=GS.ev||{mode:'pc'},{L,P}=gEvData(ev.mode);const r
 
 // ====== Excel ejecutivo del bloque Gastos ======
 function gPlain(h){return String(h).replace(/<a [^>]*>[^<]*<\/a>/g,'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&')}
-function gXlsBuild(){
+function gXlsBuild(opt){const emb=!!(opt&&opt.book),PF=(opt&&opt.prefix)||'';
   const R=GX.R,NP=GX.NP,lf=GX.lastFull,A=GS.a,Bm=GS.b,per=GX.per.map((p,i)=>GX.pl(i)+(GX.partial&&i==NP-1?'*':''));
   const T=gtot(R);T.mt=gMt(R);gRes();const RS=GX._res,hs=GX._hs||[];
-  const B=new XW.Book({title:'Gasto de mantenimiento · Sucursales',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Gasto de mantenimiento'});
+  const B=emb?opt.book:new XW.Book({title:'Gasto de mantenimiento · Sucursales',footer:'Paquetexpress · Mantenimiento de Activos Logísticos · Gasto de mantenimiento'});
   const sub=`Facturado neto sin IVA · Oracle Fusion · actualizado al ${G.gen} · Filtros: ${gFiltTxt()}${GX.partial?' · '+GX.pln(NP-1)+' parcial (*)':''}`;
-  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',ut:'Tipo de unidad',pv:'Proveedores',un:'Unidades',var:'Variación',flota:'Gasto por flota',ev:'Evaluación'};
+  const desc2={mes:'Gasto mensual, índice correctivo y OT',cc:'Sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',ut:'Preventivo y correctivo por tipo de unidad',pv:'Concentración por proveedor',un:'Unidades con mayor gasto',var:'Por qué cambió entre dos periodos',flota:'Gasto ÷ unidades del inventario',ev:'Móviles con peor evaluación'};
+  const names={res:'Resumen',mes:'Mensual',cc:'Sucursales',cta:'Cuentas',sis:'Sistemas',pc:'Prev vs Correctivo',ut:'Tipo de unidad',pv:'Proveedores',un:'Unidades',var:'Variación',flota:emb?'Por flota':'Gasto por flota',ev:emb?'Móviles problema':'Evaluación'};if(PF)Object.keys(names).forEach(k=>names[k]=PF+names[k]);
   const W={};const tabs={res:XC.navy,mes:XC.blue,cc:XC.blue,cta:XC.blue,sis:XC.blue,pc:XC.gn,ut:XC.gn,pv:XC.or,un:XC.rd,var:XC.rd,flota:XC.gn,ev:XC.rd};
-  Object.keys(names).forEach(k=>W[k]=B.sheet(names[k],{grid:false,tab:tabs[k],zoom:k=='res'?95:100}));
+  Object.keys(names).forEach(k=>{if(emb&&k=='res')return;W[k]=B.sheet(names[k],{grid:false,tab:tabs[k],zoom:k=='res'?95:100})});
   const mcols=(get)=>GX.per.map((p,i)=>({h:per[i],w:11.5,t:'money',k:get(i)}));
   // ---- Mensual
   let tM;{const ws=W.mes;xBanner(ws,'Gasto mensual',sub,10);
@@ -2168,7 +2182,7 @@ function gXlsBuild(){
       const t=xTable(ws,5,cols,L.slice(0,300));ws.dataBar(`E6:E${t.r2}`,'F6A5AD');ws.dataBar(`K6:K${t.r2}`,'FFD08A');ws.scale3(`O6:O${t.r2}`,'B7E4C7','FFE9A8','F8B4BA');
       ws.cell(`P6:P${t.r2}`,'equal','"Crítico"',{fc:'9C0006',bg:'FFC7CE',b:1});ws.cell(`P6:P${t.r2}`,'equal','"Problema"',{fc:'9C5700',bg:'FFEB9C',b:1});ws.filter(5,1,t.r2,cols.length);ws.freeze(5,2)}}
   // ---- Resumen
-  {const ws=W.res;ws.widths[1]=2.5;for(let c=2;c<=13;c++)ws.widths[c]=13;
+  if(!emb){const ws=W.res;ws.widths[1]=2.5;for(let c=2;c<=13;c++)ws.widths[c]=13;
     xBanner(ws,'GASTO DE MANTENIMIENTO · REPORTE EJECUTIVO','',13);ws.set(2,1,'Mantenimiento de Activos Logísticos · Paquetexpress · '+sub,{sz:10.5,fc:'BFD0F5',bg:XC.navy,h:'left',ind:1});
     const tile=(r,c,label,val,subt,color,nf)=>{const bgc={bg:XC.bg};ws.set(r,c,label,{b:1,sz:9,fc:XC.mu,...bgc,h:'left',ind:1,bd:{t:['thick',color]}}).fill(r,c+1,r,c+2,{...bgc,bd:{t:['thick',color]}}).merge(r,c,r,c+2).rowH(r,22);
       ws.set(r+1,c,val,{b:1,sz:26,fc:color,...bgc,h:'left',ind:1,nf:nf||'#,##0'}).fill(r+1,c+1,r+1,c+2,bgc).merge(r+1,c,r+1,c+2).rowH(r+1,44);
@@ -2192,6 +2206,7 @@ function gXlsBuild(){
     sec('ÍNDICE DE HOJAS');const desc={mes:'Gasto, índice correctivo y OT mes a mes',cc:'Matriz sucursal × mes con semáforos',cta:'Todas las cuentas por mes',sis:'Gasto por sistema del vehículo',pc:'Dependencia del correctivo por sucursal',ut:'Gasto preventivo y correctivo por tipo de unidad y modelo',pv:'Concentración y ticket por proveedor',un:'500 unidades con mayor gasto y su cruce con paros',var:'Qué explica el cambio entre los dos periodos que compares (mes, año o periodo)',flota:'Gasto ÷ unidades del inventario, por tipo/modelo',ev:'Móviles con peor evaluación: gasto, días detenida y costo por día'};
     Object.keys(W).filter(k=>k!='res').forEach(k=>{ws.set(r,2,names[k],{u:1,fc:'1F5BFF',b:1,sz:10.5}).link(r,2,names[k],'A1');ws.set(r,4,desc[k],{sz:10,fc:XC.mu});r++});
     r++;ws.set(r,2,`Generado por el Portal Flota Inmovilizada · ${new Date().toLocaleString('es-MX')}`,{i:1,sz:9,fc:XC.mu})}
+  if(emb)B._gs=Object.keys(W).map(k=>[names[k],desc2[k]]);
   return B}
 function gXls(){try{XW.save(gXlsBuild(),'Gasto_Mantenimiento_Ejecutivo_'+G.genISO+'.xlsx')}catch(e){console.error(e);alert('No se pudo generar el Excel: '+e.message)}}
 function gDetXls(){try{const q=GS.dq;const R=GX.R.filter(r=>(q.per===''||r.p==q.per)&&(!q.cc||(r.cc+' '+r.ccN).toLowerCase().includes(q.cc.toLowerCase()))&&(!q.cta||r.ctn.toLowerCase().includes(q.cta.toLowerCase()))&&(!q.prov||r.pv.toLowerCase().includes(q.prov.toLowerCase()))&&(q.tp===''||r.tp==q.tp));
@@ -2271,6 +2286,7 @@ function cpCalc(){const c=CP,rows=pick(pick(pick(pick(D,c.reg,2),c.suc,1),c.tipo
  if(o.falla.length>1)rc.push(`Revisar la causa raíz de "${o.falla[0].k}" y su plan de refacciones, por ser la falla con mayor impacto.`);
  if(rec.length)rc.push('Evaluar reemplazo o reparación mayor en las unidades reincidentes.');
  if(o.reg.length>1)rc.push(`Dar seguimiento semanal con ${o.reg[0].k}, la región con más unidades detenidas.`);
+ try{if(typeof gaHalls=='function'){const g=gaHalls();g.h.forEach(x=>hall.push(x));g.r.forEach(x=>rc.push(x))}}catch(e){console.error(e)}
  o.hall=hall;o.rc=rc;return o}
 function cpScope(){const p=[];[['reg','Región'],['suc','Sucursal'],['tipo','Tipo de unidad'],['falla','Falla']].forEach(([k,l])=>{if(CP[k].size)p.push(l+': '+[...CP[k]].join(', '))});if(CP.min)p.push('más de '+CP.min+' días detenidas');return p.length?p.join(' · '):'Toda la flota'}
 const lim=(a,n)=>n>0?a.slice(0,n):a;
