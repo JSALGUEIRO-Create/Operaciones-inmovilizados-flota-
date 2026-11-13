@@ -1717,21 +1717,27 @@ function gUtRows(rs,kf){
   a.forEach(x=>{x.pre=x.tp[0];x.cor=x.tp[1];x.sin=x.tp[2];x.idx=x.pre+x.cor?x.cor/(x.pre+x.cor)*100:0;x.uni=U.has(x.k)?U.get(x.k).size:0;x.pu=x.uni?x.m/x.uni:0;x.nOT=x.ot.size;x.pOT=x.nOT?(x.pre+x.cor)/x.nOT:0;
     let fm=0;for(let p=0;p<GX.NP;p++)if(!(GX.partial&&p==GX.NP-1))fm+=x.mm[p];x.fm=fm;x.nf=nf});
   return a}
+function gPf(cats,mdAll){
+  const mk=(arr,ttl,click)=>{arr=arr.filter(x=>x.fl).sort((a,b)=>b.pf-a.pf).slice(0,12);if(!arr.length)return '';const mx=arr[0].pf||1;
+   return `<div><h4 style="margin:0 0 8px;font-size:13px">${ttl}</h4>${arr.map(x=>`<div class="gsb ck" onclick="${click}('${gq(x.k)}')"><span title="${ge(x.k)}"><b>${ge(x.k)}</b></span><div class="gsbar" style="width:${100*x.pf/mx}%"><i style="width:100%;background:var(--ac,#4f8cff)"></i></div><em><b>${gf(x.pf)}</b> por unidad · ${gm(x.m)} ÷ ${fmt(x.fl)} uds</em></div>`).join('')}</div>`};
+  const a=mk(cats,'Por tipo de unidad',"gOpen.bind(null,'ut')"),b=mk(mdAll,'Por modelo',"gOpen.bind(null,'md')");
+  if(!a&&!b)return '';
+  return `<div class="card" style="margin-top:12px"><h3>Gasto por proporción de flota</h3><p class="note" style="margin-top:0">Gasto total del filtro ÷ unidades que existen en el inventario (no solo las que fallaron). Ej.: $1,000 de gasto con 1,000 unidades = $1 por unidad de flota. Muestra qué tipo pesa más sobre la flota que tienes.</p><div class="grid g2">${a}${b}</div></div>`}
 function gUt(){
   const R=GX.R,NP=GX.NP,T=gtot(R),nf=NP-(GX.partial?1:0)||1;
   const cats=gUtRows(R,r=>r.ut).sort((a,b)=>b.m-a.m);
   // flota del inventario por categoría (suma de los modelos mapeados, sin repetir)
   const mdAll=gUtRows(R,r=>r.md);const mdCat={};R.forEach(r=>mdCat[r.md]=r.ut);
-  mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0});
-  cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0});
+  mdAll.forEach(x=>{x.ut=mdCat[x.k];x.fl=GX.fleet(x.k);x.pfm=x.fl?x.fm/x.fl/nf:0;x.pf=x.fl?x.m/x.fl:0});
+  cats.forEach(c=>{const seen=new Set();let fl=0;mdAll.filter(x=>x.ut==c.k).forEach(x=>{const d=GX.mdMap[x.k];if(x.fl&&!seen.has(d)){seen.add(d);fl+=x.fl}});c.fl=fl;c.pfm=fl?c.fm/fl/nf:0;c.pf=fl?c.m/fl:0});
   const top=cats[0],mxI=cats.filter(c=>c.pre+c.cor>=300000).sort((a,b)=>b.idx-a.idx)[0],mxU=cats.filter(c=>c.uni>=10).sort((a,b)=>b.pu-a.pu)[0];
   const mx=Math.max(...cats.map(c=>c.m),1);
   const bars=cats.map(c=>{const t=c.m||1;return `<div class="gsb ck" onclick="gOpen('ut','${gq(c.k)}')"><span title="${ge(c.k)}"><b>${ge(c.k)}</b></span><div class="gsbar" style="width:${100*c.m/mx}%"><i style="width:${c.pre/t*100}%;background:var(--gn)" title="Preventivo ${gf(c.pre)}"></i><i style="width:${c.cor/t*100}%;background:var(--rd)" title="Correctivo ${gf(c.cor)}"></i><i style="width:${c.sin/t*100}%;background:var(--mu)" title="Sin OT ${gf(c.sin)}"></i></div><em><b>${gm(c.m)}</b> · <span style="color:var(--gn)">${gm(c.pre)}</span> / <span style="color:var(--rd)">${gm(c.cor)}</span> · ${c.idx.toFixed(0)}% corr.</em></div>`}).join('');
-  const s=GS.sort.ut||[0,-1];const cols=[x=>x.m,x=>x.k,x=>x.pre,x=>x.cor,x=>x.idx,x=>x.uni,x=>x.pu,x=>x.nOT,x=>x.pOT,x=>x.pfm];
+  const s=GS.sort.ut||[0,-1];const cols=[x=>x.m,x=>x.k,x=>x.pre,x=>x.cor,x=>x.idx,x=>x.uni,x=>x.pu,x=>x.nOT,x=>x.pOT,x=>x.pfm,x=>x.pf];
   const sh=(key,i,l)=>`<th onclick="gSortBy('${key}',${i},-1)">${l}${(GS.sort[key]||[0,-1])[0]===i?((GS.sort[key]||[0,-1])[1]<0?' ▼':' ▲'):''}</th>`;
   const srt=(arr,key)=>{const q=GS.sort[key]||[0,-1];return arr.slice().sort((x,y)=>{const f=cols[q[0]];const a=f(x),b=f(y);return (typeof a=='string'?a.localeCompare(b):a-b)*q[1]})};
-  const row=(x,click)=>`<tr class="ck" onclick="${click}"><td><b>${ge(x.k)}</b></td><td><b>${gm(x.m)}</b></td><td style="color:var(--gn)">${gm(x.pre)}</td><td style="color:var(--rd)">${gm(x.cor)}</td><td><span class="bar" style="width:70px"><i style="width:${x.idx}%;background:var(--rd)"></i></span> ${x.idx.toFixed(0)}%</td><td>${x.uni||'–'}</td><td>${x.uni?gf(x.pu):'–'}</td><td>${x.nOT}</td><td>${x.nOT?gf(x.pOT):'–'}</td><td>${x.fl?fmt(x.fl)+' uds':'<span class="nd">–</span>'}</td><td>${x.fl?'<b>'+gf(x.pfm)+'</b>':'<span class="nd">–</span>'}</td><td>${gSpark(x.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td></tr>`;
-  const head=`<tr><th>Tipo</th>${sh('ut',0,'Total')}${sh('ut',2,'Preventivo')}${sh('ut',3,'Correctivo')}${sh('ut',4,'% corr.')}${sh('ut',5,'Unidades con gasto')}${sh('ut',6,'$ por unidad')}${sh('ut',7,'OT')}${sh('ut',8,'$ por OT')}<th>Flota (inventario)</th>${sh('ut',9,'$ por unidad de flota / mes')}<th>Tendencia</th></tr>`;
+  const row=(x,click)=>`<tr class="ck" onclick="${click}"><td><b>${ge(x.k)}</b></td><td><b>${gm(x.m)}</b></td><td style="color:var(--gn)">${gm(x.pre)}</td><td style="color:var(--rd)">${gm(x.cor)}</td><td><span class="bar" style="width:70px"><i style="width:${x.idx}%;background:var(--rd)"></i></span> ${x.idx.toFixed(0)}%</td><td>${x.uni||'–'}</td><td>${x.uni?gf(x.pu):'–'}</td><td>${x.nOT}</td><td>${x.nOT?gf(x.pOT):'–'}</td><td>${x.fl?fmt(x.fl)+' uds':'<span class="nd">–</span>'}</td><td>${x.fl?'<b>'+gf(x.pf)+'</b>':'<span class="nd">–</span>'}</td><td>${x.fl?gf(x.pfm):'<span class="nd">–</span>'}</td><td>${gSpark(x.mm.slice(0,GX.partial?NP-1:NP),60,20)}</td></tr>`;
+  const head=`<tr><th>Tipo</th>${sh('ut',0,'Total')}${sh('ut',2,'Preventivo')}${sh('ut',3,'Correctivo')}${sh('ut',4,'% corr.')}${sh('ut',5,'Unidades con gasto')}${sh('ut',6,'$ por unidad')}${sh('ut',7,'OT')}${sh('ut',8,'$ por OT')}<th>Flota (inventario)</th>${sh('ut',10,'$ por unidad de flota (periodo)')}${sh('ut',9,'$ por unidad de flota / mes')}<th>Tendencia</th></tr>`;
   const sel=GS.utSel&&cats.find(c=>c.k==GS.utSel)?GS.utSel:'';
   const mods=srt(mdAll.filter(x=>!sel||x.ut==sel),'md');
   // híbrido vs diésel
@@ -1746,6 +1752,7 @@ function gUt(){
   <div class="card story"><b>${ge(top.k)}</b> es el tipo que más gasta: <b>${gm(top.m)}</b> (${(top.m/T.m*100).toFixed(0)}% del total), con ${top.idx.toFixed(0)}% en correctivo.${mxI?` El más dependiente del correctivo es <b>${ge(mxI.k)}</b> (${mxI.idx.toFixed(0)}%).`:''}${mxU?` Por unidad con gasto, el más caro es <b>${ge(mxU.k)}</b> (${gf(mxU.pu)} por unidad en el periodo).`:''} En total, ${gm(nPre)} fueron preventivos y ${gm(nCorr)} correctivos.</div>
   <div class="grid g4" style="margin-top:12px">${gKpi(gm(T.m),'gasto del filtro')}${gKpi(cats.length,'tipos de unidad','',`${mdAll.length} modelos`)}${gKpi(gm(nPre),'preventivo','g',`${(nPre/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}${gKpi(gm(nCorr),'correctivo','r',`${(nCorr/(nPre+nCorr||1)*100).toFixed(0)}% con OT`)}</div>
   <div class="card" style="margin-top:12px"><h3>Preventivo <span style="color:var(--gn)">■</span> vs correctivo <span style="color:var(--rd)">■</span> por tipo de unidad</h3>${bars}<p class="note">Ancho de la barra = gasto total del tipo. Verde preventivo · rojo correctivo · gris sin OT.</p></div>
+  ${gPf(cats,mdAll)}
   <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Detalle por tipo de unidad</h3><div style="overflow-x:auto"><table class="gtb">${head}${srt(cats,'ut').map(c=>row(c,`gOpen('ut','${gq(c.k)}')`)).join('')}</table></div></div>
   <div class="card" style="margin-top:12px;padding:0"><h3 style="padding:14px 14px 0">Modelos${sel?' de '+ge(sel)+' <span class="chip on" onclick="GS.utSel=\'\';render()">Ver todos ✕</span>':' (todos)'}</h3><div style="overflow-x:auto;max-height:70vh"><table class="gtb">${head.replace('<th>Tipo</th>','<th>Modelo</th>')}${mods.map(x=>row(x,`gOpen('md','${gq(x.k)}')`)).join('')}</table></div><p class="note" style="padding:0 14px 12px">Clic en un modelo para ver por qué cambió su gasto. "$ por unidad de flota" usa el inventario del portal cuando el modelo se puede emparejar.</p></div>
   ${hyHtml}${mat}`;
