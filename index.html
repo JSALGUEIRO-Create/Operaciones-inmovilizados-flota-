@@ -1400,7 +1400,7 @@ function gApply(){
   X.partial=X.partial0&&f.to==N0-1;X.lastFull=Math.max(0,X.partial?X.NP-2:X.NP-1);
   X.pl=p=>{const s=X.per[p];return s?GMES[+s.slice(5)-1]+' '+s.slice(2,4):''};
   X.pls=p=>X.per[p]?GMES[+X.per[p].slice(5)-1]:'';
-  X.pln=p=>{const s=X.per[p];return s?GMESL[+s.slice(5)-1]:''};
+  X.pln=p=>{const s=X.per[p];return s?GMESL[+s.slice(5)-1]+' '+s.slice(0,4):''};
   X.pln0=()=>GMESL[+X.per0[X.per0.length-1].slice(5)-1];
   GS.b=X.lastFull;GS.a=Math.max(0,GS.b-1);GS.all={};
 }
@@ -1453,7 +1453,7 @@ function gEmpty(){return `<h2>Gastos de mantenimiento</h2><div class="card story
 function gRender(){
   const m=document.getElementById('m');if(!m)return;
   if(!GX){m.innerHTML=gEmpty();return}
-  const head=`<div class="gHead"><div><h2>💰 Gastos de mantenimiento · Sucursales ${GX.per0[0].slice(0,4)}</h2><p class="sub">Facturado neto sin IVA, por fecha contable · Oracle Fusion · actualizado al ${ge(G.gen)}${GX.partial0?` · <b style="color:var(--ac)">${GX.pln0()} es parcial (corte día ${GX.genDay} de ${GX.dm})</b>`:''}</p></div><button class="gxl" onclick="gXls()">📊 Excel ejecutivo de gastos</button></div>${gTabs()}${gFilters()}`;
+  const head=`<div class="gHead"><div><h2>💰 Gastos de mantenimiento · Sucursales ${GX.per0[0].slice(0,4)}${GX.per0[GX.per0.length-1].slice(0,4)!=GX.per0[0].slice(0,4)?'–'+GX.per0[GX.per0.length-1].slice(0,4):''}</h2><p class="sub">Facturado neto sin IVA, por fecha contable · Oracle Fusion · actualizado al ${ge(G.gen)}${GX.partial0?` · <b style="color:var(--ac)">${GX.pln0()} es parcial (corte día ${GX.genDay} de ${GX.dm})</b>`:''}</p></div><button class="gxl" onclick="gXls()">📊 Excel ejecutivo de gastos</button></div>${gTabs()}${gFilters()}`;
   if(!GX.R.length){m.innerHTML=head+'<div class="card story">No hay gasto con esos filtros. Prueba ampliando el periodo o quitando algún filtro.</div>';return}
   const fn=[gRes,gWhy,gCC,gCta,gPC,gUt,gPv,gUn,gFl,gDet,gEv][GS.t];
   let o='';try{o=fn()}catch(e){console.error(e);o='<div class="card">Error al armar esta vista: '+ge(e.message)+'</div>'}
@@ -1578,7 +1578,7 @@ function gWhy(){
   const canDrill=GS.dim!='tp';
   const body=rowsT.slice(0,GS.all.why?9999:25).map(x=>`<tr ${canDrill?`class="ck" onclick="gDrill('${GS.dim}','${gq(x.k)}')"`:''}><td>${ge(dim[2](x.k))}${!x.a&&x.b?' <span class="pill r">nuevo</span>':x.a&&!x.b?' <span class="pill g">sin gasto</span>':''}</td><td>${x.a?gf(x.a):'–'}</td><td>${x.b?gf(x.b):'–'}</td><td style="color:${x.d>0?'var(--rd)':'var(--gn)'};font-weight:700">${x.d>0?'+':''}${gf(x.d)}</td><td>${x.a?gDl(x.a,x.b):'<span class="nd">–</span>'}</td><td><span class="bar" style="width:90px"><i style="width:${100*Math.abs(x.d)/mxd}%;background:${x.d>0?'var(--rd)':'var(--gn)'}"></i></span></td><td>${gm(x.t)}</td></tr>`).join('');
   const sh=(i,l)=>`<th onclick="GS.sort.why=[${i},GS.sort.why&&GS.sort.why[0]===${i}?-GS.sort.why[1]:-1];render()">${l}${GS.sort.why&&GS.sort.why[0]===i?(GS.sort.why[1]<0?' ▼':' ▲'):''}</th>`;
-  return `<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><p class="sub">Elige dos meses y la dimensión: el portal descompone la diferencia en quién la causó, y si fue por más órdenes de trabajo o por órdenes más caras.</p>
+  const HTML=`<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><p class="sub">Elige dos meses y la dimensión: el portal descompone la diferencia en quién la causó, y si fue por más órdenes de trabajo o por órdenes más caras.</p>
   <div class="fbar"><b>Mes base</b>${monthSel('a',A)}<b>vs</b>${monthSel('b',B)}<span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-1);GS.b=GX.lastFull;render()">Último mes vs anterior</span><span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-2);GS.b=GX.lastFull;render()">Último vs hace 2 meses</span></div>
   <div class="fbar"><b>Explicar por</b>${Object.keys(GDIM).map(k=>`<span class="chip ${GS.dim==k?'on':''}" onclick="GS.dim='${k}';render()">${GDIM[k][0]}</span>`).join('')}</div>${crumb}${warn}
   <div class="card story gnar" style="margin-top:8px">${gNarr(rs,A,B,GS.dim)}</div>
@@ -1589,7 +1589,8 @@ function gWhy(){
   <div class="card"><h3>Quién explica el cambio · por ${dim[0].toLowerCase()}</h3>${gTopBars(up.slice(0,6),dn.slice(0,6),dim)}</div></div>
   <div class="card" style="margin-top:12px"><h3>Puente de ${GX.pln(A)} a ${GX.pln(B)} · por ${dim[0].toLowerCase()}</h3>${wf}</div>
   <div class="card" style="margin-top:12px"><h3>Detalle de la variación</h3><p class="note">${canDrill?'Clic en una fila para meterte a ese concepto y ver qué lo causó (sucursal → cuenta → proveedor → unidad).':''} Clic en un encabezado para ordenar.</p>
-  <div style="overflow-x:auto"><table><tr><th onclick="GS.sort.why=[-1,1];render()">${dim[0]}</th>${sh(1,GX.pls(A))}${sh(2,GX.pls(B))}${sh(3,'Δ $')}${sh(4,'Δ %')}${sh(0,'Peso del cambio')}${sh(5,'Acumulado')}</tr>${body}</table></div>${rowsT.length>25?`<p class="note"><span class="chip" onclick="GS.all.why=!GS.all.why;render()">${GS.all.why?'Ver solo 25':'Ver las '+rowsT.length}</span></p>`:''}</div>`;
+  <div style="overflow-x:auto"><table><tr><th onclick="GS.sort.why=[-1,1];render()">${dim[0]}</th>${sh(1,GX.pl(A))}${sh(2,GX.pl(B))}${sh(3,'Δ $')}${sh(4,'Δ %')}${sh(0,'Peso del cambio')}${sh(5,'Acumulado')}</tr>${body}</table></div>${rowsT.length>25?`<p class="note"><span class="chip" onclick="GS.all.why=!GS.all.why;render()">${GS.all.why?'Ver solo 25':'Ver las '+rowsT.length}</span></p>`:''}</div>`;
+  return A==B?HTML.slice(0,HTML.indexOf('<div class="card story gnar"'))+`<div class="card gwarn">Elegiste el mismo mes en los dos lados (<b>${GX.pln(A)}</b>). Cambia uno de los meses para comparar.</div>`:HTML
 }
 function gDrill(dim,key){GS.fl[dim]=key;const order=['cc','ctn','pv','un','sy','sb','rg','ndn','tp'].filter(k=>!GS.fl[k]&&k!='rg'&&k!='ndn');GS.dim=dim=='cc'?'ctn':dim=='ctn'?'cc':order[0]||'cc';render();scrollTo(0,0)}
 function gShort(dim,k){if(GS.dim=='cc')return k;const s=dim[2](k);return s.length>14?s.slice(0,13)+'…':s}
