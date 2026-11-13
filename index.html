@@ -217,6 +217,11 @@ svg .ck{cursor:pointer}svg rect.ck:hover,svg circle.ck:hover{filter:brightness(1
 .gsw2 b{font-size:13px;display:block}.gsw2 small{font-size:11px;color:var(--mu)}.gsw2.on{border-color:var(--pr)}
 .gtg{width:40px;height:22px;border-radius:12px;background:var(--bd);position:relative;flex:none;transition:.15s}.gtg i{position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
 .gsw2.on .gtg{background:var(--pr)}.gsw2.on .gtg i{left:21px}
+
+.gcv{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}.gcs{flex:1;min-width:240px;border:1.5px solid;border-radius:12px;padding:8px 12px;background:var(--bg2);display:flex;flex-direction:column;gap:5px}
+.gcs small{font-size:10.5px;font-weight:800;letter-spacing:.07em}.gcs select{padding:8px 24px 8px 10px;border:1.5px solid var(--bd);border-radius:9px;background:var(--bg);color:var(--tx);font-weight:700;font-size:13px}
+.gvs{align-self:center;font-size:15px;color:var(--pr2);background:var(--bg2);border:1.5px solid var(--bd);border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
+.gck{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12.5px;cursor:pointer}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1437,7 +1442,7 @@ const gq=s=>String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');
 const ge=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function gagg(rs,kf){const o=new Map(),NP=GX.NP;for(const r of rs){const k=kf(r);let a=o.get(k);if(!a){a={k,m:0,l:0,ot:new Set(),oc:new Set(),mm:new Array(NP).fill(0),mo:Array.from({length:NP},()=>new Set()),mc:new Array(NP).fill(0),tp:[0,0,0]};o.set(k,a)}a.m+=r.m;a.l++;if(r.ot>=0){a.ot.add(r.ot);a.mo[r.p].add(r.ot)}if(r.oc>=0)a.oc.add(r.oc);a.mm[r.p]+=r.m;if(r.tp<2)a.mc[r.p]+=r.m;a.tp[r.tp]+=r.m}return [...o.values()]}
 function gtot(rs){const a=gagg(rs,()=>1)[0];return a||{m:0,l:0,ot:new Set(),oc:new Set(),mm:new Array(GX.NP).fill(0),mo:Array.from({length:GX.NP},()=>new Set()),mc:new Array(GX.NP).fill(0),tp:[0,0,0]}}
-const gfl=()=>{const f=GS.fl;return GX.R.filter(r=>(!f.cc||r.cc==f.cc)&&(!f.rg||r.rg==f.rg)&&(!f.ctn||r.ctn==f.ctn)&&(f.tp==null||f.tp===''||r.tp==f.tp)&&(!f.pv||r.pv==f.pv)&&(!f.un||r.un==f.un)&&(!f.sb||r.sb==f.sb)&&(!f.sy||r.sy==f.sy)&&(!f.ndn||r.ndn==f.ndn)&&(!f.ut||r.ut==f.ut)&&(!f.md||r.md==f.md))};
+const gfl=src=>{const f=GS.fl;return (src||GX.R).filter(r=>(!f.cc||r.cc==f.cc)&&(!f.rg||r.rg==f.rg)&&(!f.ctn||r.ctn==f.ctn)&&(f.tp==null||f.tp===''||r.tp==f.tp)&&(!f.pv||r.pv==f.pv)&&(!f.un||r.un==f.un)&&(!f.sb||r.sb==f.sb)&&(!f.sy||r.sy==f.sy)&&(!f.ndn||r.ndn==f.ndn)&&(!f.ut||r.ut==f.ut)&&(!f.md||r.md==f.md))};
 const GDIM={cc:['Sucursal',r=>r.cc,k=>(GX.CCN[k]||k)+' · '+k,'cc'],rg:['Región',r=>r.rg,k=>k,'rg'],sy:['Sistema',r=>r.sy,k=>k,'sy'],ctn:['Cuenta',r=>r.ctn,k=>gTitle(k),'ctn'],tp:['Preventivo / Correctivo',r=>r.tp,k=>GTP[k],'tp'],pv:['Proveedor',r=>r.pv,k=>k,'pv'],un:['Unidad',r=>r.un||'(sin unidad)',k=>k,'un'],sb:['Subtipo de OT',r=>r.sb,k=>k,'sb'],ndn:['Entidad',r=>r.ndn,k=>k,'ndn'],ut:['Tipo de unidad',r=>r.ut,k=>k,'ut'],md:['Modelo',r=>r.md,k=>k,'md']};
 const GFN={cc:'Sucursal',rg:'Región',sy:'Sistema',ctn:'Cuenta',tp:'Tipo',pv:'Proveedor',un:'Unidad',sb:'Subtipo',ndn:'Entidad',ut:'Tipo de unidad',md:'Modelo'};
 const gSpark=(v,w,h,c)=>{const mx=Math.max(...v,1),mn=0,n=v.length;if(n<2)return '';const pts=v.map((x,i)=>(2+i*(w-4)/(n-1)).toFixed(1)+','+(h-2-(h-4)*(x-mn)/(mx-mn||1)).toFixed(1)).join(' ');return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="vertical-align:middle"><polyline fill="none" stroke="${c||'var(--pr2)'}" stroke-width="1.8" points="${pts}"/><circle cx="${pts.split(' ').pop().split(',')[0]}" cy="${pts.split(' ').pop().split(',')[1]}" r="2.4" fill="${c||'var(--pr2)'}"/></svg>`};
@@ -1545,9 +1550,50 @@ function gNarr(rs,A,B,dimKey){
  return h}
 
 // ---------- 2 · ¿POR QUÉ CAMBIÓ? ----------
-function gWhy(){
-  if(GX.NP<2)return `<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><div class="card gwarn">Para comparar necesitas un periodo de al menos 2 meses. Ajusta <b>Desde / hasta</b> arriba (por ejemplo "Todo el año").</div>`;
-  const NP=GX.NP,rs=gfl(),T=gtot(rs),A=GS.a,B=GS.b,dim=GDIM[GS.dim];
+GS.cmp={mode:'m',a:null,b:null,ya:null,yb:null,same:true};
+const GMC=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function gCmpSets(){const X=GX,c=GS.cmp,P=X.per0,N=P.length,pm=i=>GMESL[+P[i].slice(5)-1]+' '+P[i].slice(0,4),ps=i=>GMES[+P[i].slice(5)-1]+' '+P[i].slice(2,4),yrs=[...new Set(P.map(p=>p.slice(0,4)))],lf=Math.max(0,X.partial0?N-2:N-1);
+ if(!c.a||c.a[0]>=N||c.b[0]>=N){c.b=[lf,lf];const py=P.indexOf((+P[lf].slice(0,4)-1)+P[lf].slice(4));c.a=py>=0?[py,py]:[Math.max(0,lf-1),Math.max(0,lf-1)]}
+ if(!c.yb||!yrs.includes(c.yb)){c.yb=yrs[yrs.length-1];c.ya=yrs[yrs.length-2]||yrs[0]}
+ let A=[],B=[],la,lb,sa,sb;const rng=(r)=>{const a=Math.min(r[0],r[1]),b=Math.max(r[0],r[1]),o=[];for(let i=a;i<=b;i++)o.push(i);return o};
+ if(c.mode=='m'){A=[c.a[0]];B=[c.b[0]];la=pm(A[0]);lb=pm(B[0]);sa=ps(A[0]);sb=ps(B[0])}
+ else if(c.mode=='y'){const ix=y=>P.map((p,i)=>i).filter(i=>P[i].slice(0,4)==y);A=ix(c.ya);B=ix(c.yb);
+  if(c.same){const mA=new Set(A.map(i=>P[i].slice(5))),mB=new Set(B.map(i=>P[i].slice(5)));const cut=X.partial0?P[N-1].slice(5):null;A=A.filter(i=>mB.has(P[i].slice(5))&&P[i].slice(5)!=cut);B=B.filter(i=>mA.has(P[i].slice(5))&&P[i].slice(5)!=cut)}
+  const rg=a=>a.length?(a.length==12?'':' ('+GMC[+P[a[0]].slice(5)-1]+'–'+GMC[+P[a[a.length-1]].slice(5)-1]+')'):'';la=c.ya+rg(A);lb=c.yb+rg(B);sa=c.ya;sb=c.yb}
+ else{A=rng(c.a);B=rng(c.b);const l=a=>a.length?(a.length==1?pm(a[0]):pm(a[0])+' a '+pm(a[a.length-1])):'';la=l(A);lb=l(B);sa=A.length?ps(A[0])+(A.length>1?'–'+ps(A[A.length-1]):''):'';sb=B.length?ps(B[0])+(B.length>1?'–'+ps(B[B.length-1]):''):''}
+ const eq=A.length==B.length&&A.every((v,i)=>v==B[i]),ov=!eq&&A.some(i=>B.includes(i)),par=X.partial0&&(A.includes(N-1)||B.includes(N-1));
+ let warn='';if(par)warn=`<div class="card gwarn">⚠️ ${pm(N-1)} es un mes <b>parcial</b> (corte al día ${X.genDay} de ${X.dm}). Compararlo contra un mes o periodo completo casi siempre parecerá una "baja". ${c.mode=='y'?'Deja marcado "solo meses comparables" para una comparación justa.':'Compara meses completos.'}</div>`;
+ if(ov)warn+=`<div class="card gwarn">⚠️ Los dos periodos se traslapan en algunos meses; esos meses se cuentan en ambos lados.</div>`;
+ if(A.length!=B.length&&A.length&&B.length)warn+=`<div class="card gwarn">ℹ️ Los periodos tienen distinta duración (${A.length} contra ${B.length} meses): la diferencia en pesos incluye ese efecto.</div>`;
+ return{A,B,la,lb,sa,sb,eq,warn,P,N,pm,yrs,lf}}
+function gCmpRows(S){const f=GS.f,sa=new Set(S.A),sb=new Set(S.B);
+ const base=GX.R0.filter(r=>(!f.tp||f.tp.has(r.tp))&&(!f.rg||r.rg==f.rg)&&(!f.ut||r.ut==f.ut)&&(f.mx!==false||r.cc!='MTRIZ')&&(sa.has(r.p0)||sb.has(r.p0)));
+ const out=[];gfl(base).forEach(r=>{if(sa.has(r.p0))out.push(Object.assign({},r,{p:0}));if(sb.has(r.p0))out.push(Object.assign({},r,{p:1}))});return out}
+function gCmpSet(k,v){const c=GS.cmp;if(k=='mode')c.mode=v;else if(k=='a0')c.a=[+v,+v];else if(k=='b0')c.b=[+v,+v];else if(k=='af')c.a=[+v,c.a[1]];else if(k=='at')c.a=[c.a[0],+v];else if(k=='bf')c.b=[+v,c.b[1]];else if(k=='bt')c.b=[c.b[0],+v];else if(k=='ya')c.ya=v;else if(k=='yb')c.yb=v;else if(k=='same')c.same=!!v;render()}
+function gCmpPreset(n){const c=GS.cmp,S=gCmpSets(),N=S.N,lf=S.lf;
+ if(n=='yoy'){c.mode='m';c.b=[lf,lf];const py=S.P.indexOf((+S.P[lf].slice(0,4)-1)+S.P[lf].slice(4));c.a=py>=0?[py,py]:[Math.max(0,lf-1),Math.max(0,lf-1)]}
+ else if(n=='mom'){c.mode='m';c.b=[lf,lf];c.a=[Math.max(0,lf-1),Math.max(0,lf-1)]}
+ else if(n=='ytd'){c.mode='y';c.yb=S.yrs[S.yrs.length-1];c.ya=S.yrs[S.yrs.length-2]||S.yrs[0];c.same=true}
+ else if(n=='q'){c.mode='p';c.b=[Math.max(0,lf-2),lf];c.a=[Math.max(0,lf-5),Math.max(0,lf-3)]}
+ render()}
+function gCmpUi(S){const c=GS.cmp,P=S.P,mo=(id,v)=>`<select onchange="gCmpSet('${id}',this.value)">${P.map((p,i)=>`<option value="${i}" ${i==v?'selected':''}>${GMESL[+p.slice(5)-1]} ${p.slice(0,4)}${GX.partial0&&i==S.N-1?' (parcial)':''}</option>`).join('')}</select>`;
+ const yr=(id,v)=>`<select onchange="gCmpSet('${id}',this.value)">${S.yrs.map(y=>`<option ${y==v?'selected':''}>${y}</option>`).join('')}</select>`;
+ const md=[['m','Mes contra mes'],['y','Año contra año'],['p','Periodo contra periodo']];
+ const side=(t,col,inner)=>`<div class="gcs" style="border-color:${col}"><small style="color:${col}">${t}</small>${inner}</div>`;
+ let a,b;
+ if(c.mode=='m'){a=mo('a0',c.a[0]);b=mo('b0',c.b[0])}
+ else if(c.mode=='y'){a=yr('ya',c.ya);b=yr('yb',c.yb)}
+ else{a=`${mo('af',c.a[0])} <span class="note">a</span> ${mo('at',c.a[1])}`;b=`${mo('bf',c.b[0])} <span class="note">a</span> ${mo('bt',c.b[1])}`}
+ return `<div class="card gfil" style="margin-top:8px"><div class="gfh"><span class="gfi">⚖</span><div><b>COMPARAR</b><small>Elige qué se compara contra qué. Usa todo el histórico cargado; respeta tipo de gasto, región, tipo de unidad y Matriz</small></div></div>
+ <div class="gfb" style="border:0"><div class="gfq gseg" style="margin:0 0 10px">${md.map(([v,l])=>`<span class="chip ${c.mode==v?'on':''}" onclick="gCmpSet('mode','${v}')">${l}</span>`).join('')}</div>
+ <div class="gcv">${side('PERIODO BASE (antes)','#8ba0c4',a)}<b class="gvs">VS</b>${side('PERIODO A EXPLICAR (después)','#4f8cff',b)}</div>
+ ${c.mode=='y'?`<label class="gck"><input type="checkbox" ${c.same?'checked':''} onchange="gCmpSet('same',this.checked)"> Solo los meses que existen en los dos años (comparación justa)</label>`:''}
+ <div class="gfq" style="margin-top:10px"><b style="font-size:11px;color:var(--mu);align-self:center">Atajos</b><span class="chip" onclick="gCmpPreset('yoy')">Último mes vs mismo mes del año anterior</span><span class="chip" onclick="gCmpPreset('mom')">Último mes vs mes anterior</span><span class="chip" onclick="gCmpPreset('ytd')">Año vs año anterior (comparable)</span><span class="chip" onclick="gCmpPreset('q')">Últimos 3 meses vs 3 anteriores</span></div></div></div>`}
+function gWhy(){const X=GX,S=gCmpSets(),sv={NP:X.NP,per:X.per,pl:X.pl,pls:X.pls,pln:X.pln,partial:X.partial,lastFull:X.lastFull};
+ X.NP=2;X.per=['A','B'];X.pl=X.pln=i=>i?S.lb:S.la;X.pls=i=>i?S.sb:S.sa;X.partial=false;X.lastFull=1;
+ try{return gWhyBody(S)}finally{Object.assign(X,sv)}}
+function gWhyBody(S){
+  const rs=S.A.length&&S.B.length?gCmpRows(S):[],NP=2,T=gtot(rs),A=0,B=1,dim=GDIM[GS.dim];
   const ma=T.mm[A],mb=T.mm[B],d=mb-ma;
   // volumen vs costo por OT (solo gasto con OT)
   const na=T.mo[A].size,nb=T.mo[B].size,ca=T.mc[A],cb=T.mc[B],aa=na?ca/na:0,ab=nb?cb/nb:0;
@@ -1556,10 +1602,9 @@ function gWhy(){
   items.sort((x,y)=>Math.abs(y.d)-Math.abs(x.d));
   const up=items.filter(x=>x.d>0).sort((x,y)=>y.d-x.d),dn=items.filter(x=>x.d<0).sort((x,y)=>x.d-y.d);
   const sumUp=up.reduce((a,x)=>a+x.d,0),sumDn=dn.reduce((a,x)=>a+x.d,0);
-  const warn=GX.partial&&(A==NP-1||B==NP-1)?`<div class="card gwarn">⚠️ ${GX.pln(NP-1)} es un mes <b>parcial</b> (corte al día ${GX.genDay} de ${GX.dm}). La comparación contra un mes completo no es justa: casi siempre parecerá una "baja". Compara meses completos.</div>`:'';
+  const warn=S.warn;
   const flc=Object.keys(GS.fl).filter(k=>GS.fl[k]!==''&&GS.fl[k]!=null);
   const crumb=flc.length?`<div class="gcr"><b>Filtrando:</b> ${flc.map(k=>`<span class="chip on" onclick="gClr('${k}')">${GFN[k]}: ${ge(k=='tp'?GTP[GS.fl[k]]:k=='cc'?(GX.CCN[GS.fl[k]]||'')+' · '+GS.fl[k]:GS.fl[k])} ✕</span>`).join('')}<span class="chip" onclick="gClr()">Quitar todo</span></div>`:'';
-  const monthSel=(id,v)=>`<select onchange="GS.${id}=+this.value;render()">${GX.per.map((p,i)=>`<option value="${i}" ${i==v?'selected':''}>${GX.pl(i)}${GX.partial&&i==NP-1?' (parcial)':''}</option>`).join('')}</select>`;
   // narrativa
   const lead=[...up.slice(0,2)].map(x=>`<b>${ge(dim[2](x.k))}</b> (${gm(x.d)})`).join(' y ');
   const lag=[...dn.slice(0,2)].map(x=>`<b>${ge(dim[2](x.k))}</b> (${gm(x.d)})`).join(' y ');
@@ -1572,14 +1617,14 @@ function gWhy(){
   const oUp=sumUp-up.slice(0,nUp).reduce((a,x)=>a+x.d,0);if(up.length>nUp)seq.push(['Otros ↑ ('+(up.length-nUp)+')',oUp]);
   dn.slice(0,nDn).forEach(x=>seq.push([gShort(dim,x.k),x.d,x.k]));
   const oDn=sumDn-dn.slice(0,nDn).reduce((a,x)=>a+x.d,0);if(dn.length>nDn)seq.push(['Otros ↓ ('+(dn.length-nDn)+')',oDn]);
-  const wf=gWater(GX.pls(A)+' '+GX.per[A].slice(2,4),ma,seq,GX.pls(B)+' '+GX.per[B].slice(2,4),mb);
+  const wf=gWater(S.sa,ma,seq,S.sb,mb);
   const rowsT=(()=>{const sNow=GS.sort.why;let arr=items.slice();if(sNow){const i=sNow[0],dd=sNow[1];arr.sort((x,y)=>(i==-1?0:0)+(dd)*(((i===0)?Math.abs(x.d)-Math.abs(y.d):(i===1)?x.a-y.a:(i===2)?x.b-y.b:(i===3)?x.d-y.d:(i===4)?(x.a?x.d/x.a:0)-(y.a?y.d/y.a:0):(i===5)?x.t-y.t:(dim[2](x.k)).localeCompare(dim[2](y.k)))))}else arr.sort((x,y)=>Math.abs(y.d)-Math.abs(x.d));return arr})();
   const mxd=Math.max(1,...items.map(x=>Math.abs(x.d)));
   const canDrill=GS.dim!='tp';
   const body=rowsT.slice(0,GS.all.why?9999:25).map(x=>`<tr ${canDrill?`class="ck" onclick="gDrill('${GS.dim}','${gq(x.k)}')"`:''}><td>${ge(dim[2](x.k))}${!x.a&&x.b?' <span class="pill r">nuevo</span>':x.a&&!x.b?' <span class="pill g">sin gasto</span>':''}</td><td>${x.a?gf(x.a):'–'}</td><td>${x.b?gf(x.b):'–'}</td><td style="color:${x.d>0?'var(--rd)':'var(--gn)'};font-weight:700">${x.d>0?'+':''}${gf(x.d)}</td><td>${x.a?gDl(x.a,x.b):'<span class="nd">–</span>'}</td><td><span class="bar" style="width:90px"><i style="width:${100*Math.abs(x.d)/mxd}%;background:${x.d>0?'var(--rd)':'var(--gn)'}"></i></span></td><td>${gm(x.t)}</td></tr>`).join('');
   const sh=(i,l)=>`<th onclick="GS.sort.why=[${i},GS.sort.why&&GS.sort.why[0]===${i}?-GS.sort.why[1]:-1];render()">${l}${GS.sort.why&&GS.sort.why[0]===i?(GS.sort.why[1]<0?' ▼':' ▲'):''}</th>`;
-  const HTML=`<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><p class="sub">Elige dos meses y la dimensión: el portal descompone la diferencia en quién la causó, y si fue por más órdenes de trabajo o por órdenes más caras.</p>
-  <div class="fbar"><b>Mes base</b>${monthSel('a',A)}<b>vs</b>${monthSel('b',B)}<span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-1);GS.b=GX.lastFull;render()">Último mes vs anterior</span><span class="chip" onclick="GS.a=Math.max(0,GX.lastFull-2);GS.b=GX.lastFull;render()">Último vs hace 2 meses</span></div>
+  const HTML=`<h2 style="margin-top:6px">¿Por qué cambió el gasto?</h2><p class="sub">Compara mes contra mes, año contra año o periodo contra periodo: el portal descompone la diferencia en quién la causó, y si fue por más órdenes de trabajo o por órdenes más caras.</p>
+  ${gCmpUi(S)}
   <div class="fbar"><b>Explicar por</b>${Object.keys(GDIM).map(k=>`<span class="chip ${GS.dim==k?'on':''}" onclick="GS.dim='${k}';render()">${GDIM[k][0]}</span>`).join('')}</div>${crumb}${warn}
   <div class="card story gnar" style="margin-top:8px">${gNarr(rs,A,B,GS.dim)}</div>
   <div class="grid g4" style="margin-top:12px">${gKpi(gm(ma),'gasto '+GX.pln(A))}${gKpi(gm(mb),'gasto '+GX.pln(B))}${gKpi((d>=0?'+':'')+gm(d),'diferencia',d>0?'r':'g',ma?gp(d/ma*100):'')}${gKpi((nb-na>=0?'+':'')+(nb-na),'OT atendidas (cambio)',nb>na?'a':'g',`${na} → ${nb}`)}</div>
@@ -1589,13 +1634,13 @@ function gWhy(){
   <div class="card"><h3>Quién explica el cambio · por ${dim[0].toLowerCase()}</h3>${gTopBars(up.slice(0,6),dn.slice(0,6),dim)}</div></div>
   <div class="card" style="margin-top:12px"><h3>Puente de ${GX.pln(A)} a ${GX.pln(B)} · por ${dim[0].toLowerCase()}</h3>${wf}</div>
   <div class="card" style="margin-top:12px"><h3>Detalle de la variación</h3><p class="note">${canDrill?'Clic en una fila para meterte a ese concepto y ver qué lo causó (sucursal → cuenta → proveedor → unidad).':''} Clic en un encabezado para ordenar.</p>
-  <div style="overflow-x:auto"><table><tr><th onclick="GS.sort.why=[-1,1];render()">${dim[0]}</th>${sh(1,GX.pl(A))}${sh(2,GX.pl(B))}${sh(3,'Δ $')}${sh(4,'Δ %')}${sh(0,'Peso del cambio')}${sh(5,'Acumulado')}</tr>${body}</table></div>${rowsT.length>25?`<p class="note"><span class="chip" onclick="GS.all.why=!GS.all.why;render()">${GS.all.why?'Ver solo 25':'Ver las '+rowsT.length}</span></p>`:''}</div>`;
-  return A==B?HTML.slice(0,HTML.indexOf('<div class="card story gnar"'))+`<div class="card gwarn">Elegiste el mismo mes en los dos lados (<b>${GX.pln(A)}</b>). Cambia uno de los meses para comparar.</div>`:HTML
+  <div style="overflow-x:auto"><table><tr><th onclick="GS.sort.why=[-1,1];render()">${dim[0]}</th>${sh(1,S.sa)}${sh(2,S.sb)}${sh(3,'Δ $')}${sh(4,'Δ %')}${sh(0,'Peso del cambio')}${sh(5,'Acumulado')}</tr>${body}</table></div>${rowsT.length>25?`<p class="note"><span class="chip" onclick="GS.all.why=!GS.all.why;render()">${GS.all.why?'Ver solo 25':'Ver las '+rowsT.length}</span></p>`:''}</div>`;
+  return (S.eq||!S.A.length||!S.B.length)?HTML.slice(0,HTML.indexOf('<div class="card story gnar"'))+`<div class="card gwarn">${!S.A.length||!S.B.length?'Uno de los periodos no tiene meses con datos (por ejemplo, ese año no tiene los mismos meses). Cambia la selección.':`Elegiste el mismo periodo en los dos lados (<b>${S.la}</b>). Cambia uno para comparar.`}</div>`:HTML
 }
 function gDrill(dim,key){GS.fl[dim]=key;const order=['cc','ctn','pv','un','sy','sb','rg','ndn','tp'].filter(k=>!GS.fl[k]&&k!='rg'&&k!='ndn');GS.dim=dim=='cc'?'ctn':dim=='ctn'?'cc':order[0]||'cc';render();scrollTo(0,0)}
 function gShort(dim,k){if(GS.dim=='cc')return k;const s=dim[2](k);return s.length>14?s.slice(0,13)+'…':s}
 function gTopBars(up,dn,dim){const mx=Math.max(1,...up.map(x=>x.d),...dn.map(x=>-x.d));
-  const row=(x,c)=>`<div class="br ck" onclick="gOpen('${GS.dim}','${gq(x.k)}')"><span title="${ge(dim[2](x.k))}">${ge(dim[2](x.k).slice(0,26))}</span><i style="width:${100*Math.abs(x.d)/mx}%;background:${c}"></i><em style="color:${c}">${x.d>0?'+':''}${gm(x.d)}</em></div>`;
+  const row=(x,c)=>`<div class="br ck" onclick="${GS.dim=='tp'?`gOpen('tp','${gq(x.k)}')`:`gDrill('${GS.dim}','${gq(x.k)}')`}"><span title="${ge(dim[2](x.k))}">${ge(dim[2](x.k).slice(0,26))}</span><i style="width:${100*Math.abs(x.d)/mx}%;background:${c}"></i><em style="color:${c}">${x.d>0?'+':''}${gm(x.d)}</em></div>`;
   return `<b style="font-size:11px;color:var(--rd)">▲ Lo que subió</b>${up.map(x=>row(x,'var(--rd)')).join('')||'<p class="note">Nada subió.</p>'}<b style="font-size:11px;color:var(--gn);display:block;margin-top:8px">▼ Lo que bajó</b>${dn.map(x=>row(x,'var(--gn)')).join('')||'<p class="note">Nada bajó.</p>'}`}
 function gWater(la,va,seq,lb,vb){
   const W=Math.max(640,60+(seq.length+2)*64),H=290,n=seq.length+2,bw=Math.min(50,(W-70)/n-12);
