@@ -235,6 +235,15 @@ div[style*="overflow-x:auto"],div[style*="overflow:auto"]{scrollbar-gutter:stabl
 .gcbx{margin-top:7px;max-height:176px;overflow:auto;padding:2px}.gac{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:10px;border:1.5px solid var(--pr);background:rgba(79,140,255,.14);color:var(--pr2);font-size:12px;font-weight:600;cursor:pointer;user-select:none;line-height:1.25}
 .gac i{font-style:normal;font-size:11px}.gac small{color:var(--mu);font-weight:500}.gac:hover{background:rgba(79,140,255,.26)}
 .gac.off{border-color:var(--bd);background:transparent;color:var(--mu);text-decoration:line-through;opacity:.75}.gac.off:hover{color:var(--tx);opacity:1}
+
+.gfil{overflow:visible!important}.cxw{position:relative}.cxb{display:flex;justify-content:space-between;align-items:center;gap:10px;min-width:260px;max-width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg2);color:var(--tx);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}.cxb.cxon{background:var(--bg2)!important;border-color:var(--pr);color:var(--pr2)}.cxb i{font-style:normal;color:var(--mu)}
+.cxp{position:absolute;z-index:60;top:calc(100% - 2px);left:0;width:min(440px,92vw);background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.4);padding:10px}
+.cxs{width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:6px}
+.cxl{max-height:300px;overflow:auto;border:1px solid var(--bd);border-radius:8px;background:var(--bg2)}.cxr{display:flex;align-items:center;gap:9px;padding:6px 10px;cursor:pointer;font-size:12.5px}.cxr:hover{background:rgba(79,140,255,.14)}.cxn{flex:1;min-width:0}.cxr small{color:var(--mu);white-space:nowrap}.cxall{border-bottom:1px solid var(--bd)}
+.cxgh{padding:5px 10px;font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mu);background:rgba(127,127,127,.1)}.cxe{padding:14px;text-align:center;color:var(--mu);font-size:12.5px}
+.cxc{flex:none;width:15px;height:15px;border:1.5px solid var(--mu);border-radius:3px;position:relative}.cxc.on{background:var(--pr);border-color:var(--pr)}.cxc.on:after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}.cxc.mid{background:var(--pr);border-color:var(--pr)}.cxc.mid:after{content:"";position:absolute;left:3px;top:6px;width:7px;height:2px;background:#fff}
+.cxf{display:flex;justify-content:space-between;align-items:center;margin-top:8px}.cxf a{color:var(--pr2);font-size:11.5px;cursor:pointer}.cxf button{background:var(--pr);color:#fff;border:0;border-radius:8px;padding:6px 16px;font-weight:700;cursor:pointer;font-family:inherit}
+.cxt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.cxtg{border:1px solid var(--pr);color:var(--pr2);background:rgba(79,140,255,.12);border-radius:12px;padding:2px 9px;font-size:11.5px;cursor:pointer}.cxtg:hover{text-decoration:line-through}
 :root{--sb:#0a1733;--sb2:#0d2152;--sbx:#2f6bff}
 #shell{display:flex;min-height:100vh}#side{width:284px;flex:0 0 284px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a1b45 0%,#081230 100%);color:#e8eefc;border-right:1px solid rgba(255,255,255,.08);z-index:30;transition:width .2s,flex-basis .2s}
 #mainWrap{flex:1;min-width:0}#mainWrap main{max-width:1280px}
@@ -1447,6 +1456,17 @@ function gClean(){GS.f={from:null,to:null,tp:null,rg:'',ut:'',mx:true,xc:null};g
 // cuentas contables: todas incluidas por defecto; un clic en una cuenta la excluye (otro clic la regresa)
 function gXc(i){const f=GS.f,X=GX,L=X.cgrp[X.CTN[i]]||[i],s=new Set(f.xc||[]),all=L.every(k=>s.has(k));L.forEach(k=>{if(all)s.delete(k);else s.add(k)});f.xc=s.size?s:null;gApply();render()}
 function gXcG(g,off){const f=GS.f,s=new Set(f.xc||[]);(GX.ctg||[]).forEach((x,i)=>{if(x==g||g=='*'){if(off)s.add(i);else s.delete(i)}});f.xc=s.size?s:null;gApply();render()}
+// desplegable estilo Excel para cuentas contables
+function gXlist(){const q=(GS.xq||'').toLowerCase(),GN=['Preventivas','Correctivas','Otras cuentas'],V=(GX._nm||[]).filter(x=>!q||x.n.toLowerCase().includes(q)).sort((a,b)=>b.t-a.t);if(!V.length)return '<div class="cxe">Sin resultados</div>';
+  const nin=V.filter(x=>!x.off).length,st=nin==V.length?'on':nin?'mid':'';
+  let h=`<div class="cxr cxall" onclick="gXall()"><span class="cxc ${st}"></span><b>(Seleccionar todo${q?' lo visible':''})</b></div>`;
+  [0,1,2].forEach(g=>{const L=V.filter(x=>x.g==g);if(!L.length)return;h+=`<div class="cxgh">${GN[g]}</div>`+L.map(x=>`<div class="cxr" onclick="gXt(${x.i})"><span class="cxc ${x.off?'':'on'}"></span><span class="cxn">${ge(x.n)}</span><small>${gm(x.t)}</small></div>`).join('')});return h}
+function gXkeep(fn){const l=document.getElementById('gxl'),y=l?l.scrollTop:0;fn();const l2=document.getElementById('gxl');if(l2)l2.scrollTop=y}
+function gXopen(){GS.xo=!GS.xo;render();if(GS.xo){const e=document.getElementById('gxs');if(e)e.focus()}}
+function gXq(v){GS.xq=v;const l=document.getElementById('gxl');if(l)l.innerHTML=gXlist()}
+function gXt(i){gXkeep(()=>gXc(i))}
+function gXall(){gXkeep(()=>{const q=(GS.xq||'').toLowerCase(),V=(GX._nm||[]).filter(x=>!q||x.n.toLowerCase().includes(q)),allIn=V.every(x=>!x.off),s=new Set(GS.f.xc||[]);V.forEach(x=>{(GX.cgrp[x.n]||[x.i]).forEach(k=>{if(allIn)s.add(k);else s.delete(k)})});GS.f.xc=s.size?s:null;gApply();render()})}
+if(!window.__gxL){window.__gxL=1;document.addEventListener('click',e=>{if(!GS.xo)return;const p=e.composedPath?e.composedPath():[];if(p.some(n=>n&&n.id=='gxw'))return;GS.xo=false;render()})}
 const gTpKey=s=>!s?'':[...s].sort().join(',');
 function gFilters(){
   const X=GX,f=GS.f,N0=X.per0.length,pl0=i=>GMES[+X.per0[i].slice(5)-1]+' '+X.per0[i].slice(2,4);
@@ -1456,11 +1476,10 @@ function gFilters(){
   const act=f.from>0||f.to<N0-1||f.tp||f.rg||f.ut||f.mx===false||!!f.xc;
   const why=GS.t==1,nAct=(!why&&(f.from>0||f.to<N0-1)?1:0)+(tk?1:0)+(f.rg?1:0)+(f.ut?1:0)+(f.mx===false?1:0)+(f.xc?1:0);
   const xcBlock=(()=>{const tot={};X.R0.forEach(r=>{if(!why&&(r.p0<f.from||r.p0>f.to))return;if(f.tp&&!f.tp.has(r.tp))return;if(f.rg&&r.rg!=f.rg)return;if(f.ut&&r.ut!=f.ut)return;if(f.mx===false&&r.mxu)return;tot[r.cta]=(tot[r.cta]||0)+r.m});
-    const NM=Object.keys(X.cgrp).map(n=>{const L=X.cgrp[n];return{n,i:L[0],g:X.ctg[L[0]],t:L.reduce((a,k)=>a+(tot[k]||0),0),off:L.every(k=>f.xc&&f.xc.has(k)),has:L.some(k=>tot[k]!=null)}}).filter(x=>x.has||x.off);
-    const GN=['Preventivas','Correctivas','Otras cuentas'];
-    const row=g=>{const L=NM.filter(x=>x.g==g).sort((a,b)=>b.t-a.t);if(!L.length)return '';const nOff=L.filter(x=>x.off).length;
-      return `<div class="gcgh"><span>${GN[g]} · ${L.length-nOff} de ${L.length} incluidas</span><a onclick="gXcG(${g},false)">todas</a><a onclick="gXcG(${g},true)">ninguna</a></div><div class="gfq gcbx">${L.map(x=>`<span class="gac${x.off?' off':''}" title="${x.off?'Excluida: clic para incluirla':'Incluida: clic para excluirla'}" onclick="gXc(${x.i})"><i>${x.off?'✕':'✓'}</i>${ge(x.n)}<small>${gm(x.t)}</small></span>`).join('')}</div>`};
-    return `<div class="gfb gfw"><h4>🧾 Cuentas contables <span style="font-weight:500;text-transform:none;letter-spacing:0;color:var(--mu)">· todas incluidas; haz clic en una para excluirla del gasto</span>${f.xc?'<a class="gcall" onclick="gXcG(\'*\',false)">Incluir todas</a>':''}</h4>${row(0)}${row(1)}${row(2)}</div>`})();
+    X._nm=Object.keys(X.cgrp).map(n=>{const L=X.cgrp[n];return{n,i:L[0],g:X.ctg[L[0]],t:L.reduce((a,k)=>a+(tot[k]||0),0),off:L.every(k=>f.xc&&f.xc.has(k)),has:L.some(k=>tot[k]!=null)}}).filter(x=>x.has||x.off);
+    const tt=X._nm.length,offs=X._nm.filter(x=>x.off),nOff=offs.length;
+    const lbl=nOff?`${tt-nOff} de ${tt} seleccionadas`:`Todas (${tt})`;
+    return `<div class="gfb gfw"><h4>🧾 Cuentas contables</h4><div class="cxw" id="gxw"><button class="cxb${nOff?' cxon':''}" onclick="gXopen()"><span>${lbl}</span><i>${GS.xo?'▴':'▾'}</i></button>${GS.xo?`<div class="cxp"><input class="cxs" id="gxs" placeholder="Buscar cuenta…" value="${ge(GS.xq||'')}" oninput="gXq(this.value)" autocomplete="off"><div class="cxl" id="gxl">${gXlist()}</div><div class="cxf"><a onclick="gXcG('*',false)">Incluir todas</a><button onclick="gXopen()">Listo</button></div></div>`:''}${nOff?`<div class="cxt">${offs.slice(0,8).map(x=>`<span class="cxtg" onclick="gXc(${x.i})" title="Volver a incluir">✕ ${ge(x.n)}</span>`).join('')}${offs.length>8?`<span class="cxtg" style="cursor:default">+${offs.length-8} más</span>`:''}</div>`:''}</div></div>`})();
   const sel=(lbl,onch,body,on)=>`<label class="gsl${on?' on':''}"><small>${lbl}</small><span class="gsw"><select onchange="${onch}">${body}</select></span></label>`;
   return `<div class="card gfil"><div class="gfh"><span class="gfi">⚙</span><div><b>FILTROS</b><small>Elige qué quieres ver: todas las pestañas se ajustan a tu selección</small></div><span class="gfc">${nAct?nAct+' activo'+(nAct>1?'s':''):'sin filtros'}</span>${act?'<button class="gfx" onclick="gClean()">✕ Quitar filtros</button>':''}</div>
   <div class="gfg">${why?``:`<div class="gfb"><h4>📅 Periodo</h4><div class="gfd">${sel('Desde',"gSet('from',this.value)",opt(f.from),f.from>0)}${sel('Hasta',"gSet('to',this.value)",opt(f.to),f.to<N0-1)}</div><div class="gfq"><span class="chip" onclick="gQuick(0)">Todo ${X.per0[N0-1].slice(0,4)}</span>${X.per0[0].slice(0,4)!=X.per0[N0-1].slice(0,4)?'<span class="chip" onclick="gQuick(-1)">Todo el histórico</span>':''}<span class="chip" onclick="gQuick(1)">Último mes</span><span class="chip" onclick="gQuick(3)">Últimos 3</span><span class="chip" onclick="gQuick(6)">Últimos 6</span></div></div>`}
